@@ -1,0 +1,26 @@
+version: "3.4"
+services:
+  whatsapp:
+    restart: always
+    build:
+      context: .
+    ports:
+      - 8005:8005
+    links:
+      - mongo
+  mongo:
+    container_name: mongo
+    image: 'mongo'
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: ingrediondb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./Core/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+# networks:
+#   default:
+#     external:
+#       name: rasa_net
