@@ -10,6 +10,7 @@ class WhatsappRouter {
     }
     endPoints() {
         this.router.post("/webhook", this.hook);
+        this.router.get("/webhook", this.hookVeryfication);
     }
     async hook(req, res) {
         if (req.body.object) {
@@ -31,7 +32,26 @@ class WhatsappRouter {
             }
         }
         else {
-            res.status(api_1.DataErrorCode.INVALID).json({ "error": "EMPTY-DATA" });
+            res.status(api_1.DataErrorCode.INVALID).json({ error: "EMPTY-DATA" });
+        }
+    }
+    async hookVeryfication(req, res) {
+        const mode = req.query["hub.mode"];
+        const token = req.query["hub.verify_token"];
+        const challenge = req.query["hub.challenge"];
+        if (mode && token) {
+            if (mode === "subscribe") {
+                const data = await clientMessage_1.default.handleHookVerify(token);
+                if (data) {
+                    res.status(200).send(challenge);
+                }
+                else {
+                    res.status(api_1.DataErrorCode.INVALID).json({ error: "BAD REQUEST" });
+                }
+            }
+            else {
+                res.status(api_1.DataErrorCode.INVALID).json({ error: "BAD REQUEST" });
+            }
         }
     }
 }
