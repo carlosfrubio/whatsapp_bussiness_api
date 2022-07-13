@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const clientMessage_1 = require("../controllers/clientMessage");
+const clientMessageController_1 = require("../controllers/clientMessageController");
 const express_1 = require("express");
 const api_1 = require("../models/api");
 class WhatsappRouter {
@@ -20,15 +20,20 @@ class WhatsappRouter {
                 req.body.entry[0].changes[0].value.messages &&
                 req.body.entry[0].changes[0].value.messages[0]) {
                 try {
-                    const message = await clientMessage_1.default.manageWebHook(req.body.entry[0].changes[0].value);
+                    const message = await clientMessageController_1.default.manageWebHook(req.body.entry[0].changes[0].value);
                     res.status(api_1.StandarCode.OK).json({
                         status: "success",
-                        message,
+                        message: "nada",
                     });
                 }
                 catch (error) {
                     res.status(api_1.DataErrorCode.INVALID).json(error);
                 }
+            }
+            else {
+                res.status(api_1.StandarCode.OK).json({
+                    status: "success",
+                });
             }
         }
         else {
@@ -41,7 +46,7 @@ class WhatsappRouter {
         const challenge = req.query["hub.challenge"];
         if (mode && token) {
             if (mode === "subscribe") {
-                const data = await clientMessage_1.default.handleHookVerify(token);
+                const data = await clientMessageController_1.default.handleHookVerify(token);
                 if (data) {
                     res.status(200).send(challenge);
                 }

@@ -17,9 +17,17 @@ const messageModel = new mongoose_1.Schema({
         type: String,
         required: true,
     },
-    message: {
+    text: {
         type: String,
-        required: true,
+        required: false,
+    },
+    document: {
+        type: Object,
+        required: false,
+    },
+    image: {
+        type: Object,
+        required: false,
     },
 }, { timestamps: true });
 exports.MessagesModel = mongoose_1.model("MessageModel ", messageModel, "messages");

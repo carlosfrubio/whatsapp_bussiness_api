@@ -1,7 +1,11 @@
 import Axios from "axios";
 import dbController from "./dbController";
 // import { TypeMessage } from "./../models/message";
-import { sendTextMessageToWhatsapp } from "./whatsAppApi";
+import {
+  sendTextMessageToWhatsapp,
+  sendDocumentMessageToWhatsapp,
+  sendImageMessageToWhatsapp,
+} from "./whatsAppApi";
 
 class ClientMessageController {
   constructor() {}
@@ -34,18 +38,35 @@ class ClientMessageController {
             body: response.text,
           });
           await this.timer();
-        }
-        /* else if (
+        } else if (
           response.hasOwnProperty("custom") &&
-          response.custom?.image !== ""
+          response.custom.hasOwnProperty("document")
         ) {
-          await this.sendWaMultiMessage({
-            recipient_id: response.recipient_id,
-            message_content: response.custom.image,
+          await this.sendDocumentMessage({
+            phone_number_id,
+            chatroom_id,
+            token,
+            to,
+            from,
+            document_id: response.custom.document,
             caption: response.custom.caption,
+            filename: response.custom?.filename,
           });
           await this.timer();
-        } */
+        } else if (
+          response.hasOwnProperty("custom") &&
+          response.custom.hasOwnProperty("image")
+        ) {
+          await this.sendImageMessage({
+            phone_number_id,
+            chatroom_id,
+            token,
+            to,
+            from,
+            image_id: response.custom.image,
+          });
+          await this.timer();
+        }
       }
       return true;
     } catch (error) {
@@ -53,7 +74,6 @@ class ClientMessageController {
     }
   }
   public async manageWebHook(data) {
-    //console.log("DATA ENVIADA POR WA", JSON.stringify(data));
     try {
       if (
         data.hasOwnProperty("messages") &&
@@ -64,12 +84,6 @@ class ClientMessageController {
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
         const msg_body = data.messages[0].text.body; // extract the message text from the webhook payload
 
-        /* const messageExists = await dbController.findMessage(msg_id);
-
-        if (messageExists) {
-          return "Ok";
-        } */
-
         const phoneData = await dbController.findPhoneData(phone_number_id);
         if (phoneData) {
           const messageExists = await dbController.findMessage(msg_id);
@@ -77,13 +91,12 @@ class ClientMessageController {
             return;
           }
           const { data: result } = await Axios.post(
-            "https://rasaingredion.iaxon.co/webhooks/rest/webhook",
+            phoneData.bot_url,
             {
               message: msg_body,
               sender: from,
             }
           );
-
           let chatroomData = await dbController.findChatroom(
             phoneData.id,
             from
@@ -98,6 +111,8 @@ class ClientMessageController {
             chatroomData.id,
             msg_id,
             msg_body,
+            null,
+            null,
             from
           );
           this.handleBotResponses({
@@ -111,17 +126,11 @@ class ClientMessageController {
         } else {
           return;
         }
-        /* await dbController.insertMessage(
-            msg_id,
-            msg_body,
-            from
-        ); */
         return "Ok";
       } else {
         return "OK";
       }
     } catch (error) {
-      //console.log("CATCH", error);
       return error;
     }
   }
@@ -139,6 +148,8 @@ class ClientMessageController {
         chatroom_id,
         waMessage.messages[0]["id"],
         body,
+        null,
+        null,
         from
       );
       return "Ok";
@@ -148,32 +159,64 @@ class ClientMessageController {
     }
   }
 
-  /* public async sendWaMultiMessage(data) {
-    const { recipient_id, message_content, caption } = data;
+  public async sendDocumentMessage(data) {
+    const {
+      phone_number_id,
+      chatroom_id,
+      token,
+      to,
+      from,
+      document_id,
+      caption,
+      filename,
+    } = data;
     try {
-      const message = {
-        recipient_type: "individual",
-        to: recipient_id,
-        type: TypeMessage.Document,
-        document: {
-          id: message_content,
-          caption: `${caption}.pdf`,
-          filename: `${caption}.pdf`,
-        },
-      };
-      //console.log("MENSAJE A ENVIAR", JSON.stringify(message));
-      const waMessage = await dialog360(message);
+      const waMessage = await sendDocumentMessageToWhatsapp(
+        phone_number_id,
+        to,
+        document_id,
+        caption,
+        filename,
+        token
+      );
       await dbController.insertMessage(
-        waMessage?.messages[0]["id"],
-        `${caption}.pdf`,
-        "573212144420"
+        chatroom_id,
+        waMessage.messages[0]["id"],
+        null,
+        null,
+        { caption, filename, id: document_id },
+        from
       );
       return "Ok";
     } catch (error) {
       console.log("CATCH", error);
       return error;
     }
-  } */
+  }
+  public async sendImageMessage(data) {
+    const { phone_number_id, chatroom_id, token, to, from, image_id } = data;
+    try {
+      const waMessage = await sendImageMessageToWhatsapp(
+        phone_number_id,
+        to,
+        image_id,
+        token
+      );
+
+      await dbController.insertMessage(
+        chatroom_id,
+        waMessage.messages[0]["id"],
+        null,
+        { id: image_id },
+        null,
+        from
+      );
+      return "Ok";
+    } catch (error) {
+      console.log("CATCH", error);
+      return error;
+    }
+  }
 
   private async timer() {
     try {

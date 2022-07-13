@@ -40,12 +40,14 @@ class dbController {
             throw error;
         }
     }
-    async insertMessage(chatroom_id, message_id, message, whatsapp) {
+    async insertMessage(chatroom_id, message_id, text, image, document, whatsapp) {
         try {
             return await messageModel_1.MessagesModel.create({
                 chatroom_id,
                 message_id,
-                message,
+                text,
+                image,
+                document,
                 whatsapp,
             });
         }

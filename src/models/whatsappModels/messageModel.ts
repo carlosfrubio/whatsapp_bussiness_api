@@ -1,10 +1,24 @@
 import { Schema, model, Document } from "mongoose";
 
+interface IPictureMessage extends Document {
+  mime_type: string;
+  id: string;
+}
+
+interface IDocumentMessage extends Document {
+  caption: string;
+  filename: string;
+  mime_type?: string;
+  id: string;
+}
+
 export interface IMessageModel extends Document {
   chatroom_id: string;
   message_id: string;
   whatsapp: string;
-  message: string;
+  text?: string;
+  document?: IDocumentMessage;
+  image?: IPictureMessage;
 }
 
 const messageModel = new Schema(
@@ -23,9 +37,17 @@ const messageModel = new Schema(
       type: String,
       required: true,
     },
-    message: {
+    text: {
       type: String,
-      required: true,
+      required: false,
+    },
+    document: {
+      type: Object,
+      required: false,
+    },
+    image: {
+      type: Object,
+      required: false,
     },
   },
   { timestamps: true }

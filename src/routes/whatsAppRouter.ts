@@ -1,4 +1,4 @@
-import clientMessage from "../controllers/clientMessage";
+import clientMessage from "../controllers/clientMessageController";
 import { Router, Request, Response } from "express";
 import { DataErrorCode, StandarCode } from "../models/api";
 
@@ -31,11 +31,15 @@ class WhatsappRouter {
           );
           res.status(StandarCode.OK).json({
             status: "success",
-            message,
+            message: "nada",
           });
         } catch (error) {
           res.status(DataErrorCode.INVALID).json(error);
         }
+      } else {
+        res.status(StandarCode.OK).json({
+          status: "success",
+        });
       }
     } else {
       res.status(DataErrorCode.INVALID).json({ error: "EMPTY-DATA" });

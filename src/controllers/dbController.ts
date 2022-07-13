@@ -43,14 +43,18 @@ class dbController {
   public async insertMessage(
     chatroom_id: string,
     message_id: string,
-    message: string,
+    text: string,
+    image: any,
+    document: any,
     whatsapp: string
   ) {
     try {
       return await MessagesModel.create({
         chatroom_id,
         message_id,
-        message,
+        text,
+        image,
+        document,
         whatsapp,
       });
     } catch (error) {
