@@ -8,6 +8,8 @@ services:
       - 8005:8005
     links:
       - mongo
+    networks:
+      - bots
   mongo:
     image: mongo:4.2
     restart: always
@@ -23,3 +25,6 @@ services:
 volumes:
     mongodb_data:
       name: mongodb_data
+networks:
+  apinet:
+    driver: bots
