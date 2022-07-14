@@ -71,6 +71,7 @@ class ClientMessageController {
                 const msg_id = data.messages[0].id;
                 const msg_body = data.messages[0].text.body;
                 const phoneData = await dbController_1.default.findPhoneData(phone_number_id);
+                console.log(phoneData);
                 if (phoneData) {
                     const messageExists = await dbController_1.default.findMessage(msg_id);
                     if (messageExists) {
@@ -80,6 +81,7 @@ class ClientMessageController {
                         message: msg_body,
                         sender: from,
                     });
+                    console.log(result);
                     let chatroomData = await dbController_1.default.findChatroom(phoneData.id, from);
                     if (!chatroomData) {
                         chatroomData = await dbController_1.default.createChatroom(phoneData.id, from);

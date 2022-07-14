@@ -84,6 +84,7 @@ class ClientMessageController {
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
         const msg_body = data.messages[0].text.body; // extract the message text from the webhook payload
         const phoneData = await DbController.findPhoneData(phone_number_id);
+        console.log(phoneData)
         if (phoneData) {
           const messageExists = await DbController.findMessage(msg_id);
           if (messageExists) {
@@ -93,6 +94,7 @@ class ClientMessageController {
             message: msg_body,
             sender: from,
           });
+          console.log(result)
           let chatroomData = await DbController.findChatroom(
             phoneData.id,
             from

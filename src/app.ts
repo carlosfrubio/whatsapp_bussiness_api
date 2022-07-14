@@ -26,7 +26,7 @@ class App {
     this.app.use(bodyParser.json({ limit: "50mb" }));
     this.app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
     mongoose.connection.on("open", () => {
-      console.log("Ingredion DB Online.");
+      console.log("Mongo DB Online.");
     });
   }
 
