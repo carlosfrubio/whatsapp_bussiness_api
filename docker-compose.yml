@@ -26,5 +26,5 @@ volumes:
     mongodb_data:
       name: mongodb_data
 networks:
-  apinet:
-    driver: bots
+  bots:
+    driver: bridge
