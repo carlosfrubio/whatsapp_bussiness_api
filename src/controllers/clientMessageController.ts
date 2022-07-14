@@ -26,6 +26,7 @@ class ClientMessageController {
     token,
     chatroom_id,
   }) {
+    console.log("ENTRO AL BOT RESPONSE")
     try {
       for (const response of result) {
         if (response.hasOwnProperty("text") && response.text !== "") {
@@ -84,17 +85,18 @@ class ClientMessageController {
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
         const msg_body = data.messages[0].text.body; // extract the message text from the webhook payload
         const phoneData = await DbController.findPhoneData(phone_number_id);
-        console.log(phoneData)
+        console.log("messageExists", phoneData)
         if (phoneData) {
           const messageExists = await DbController.findMessage(msg_id);
           if (messageExists) {
+            console.log("messageExists", messageExists)
             return;
           }
           const { data: result } = await Axios.post(phoneData.bot_url, {
             message: msg_body,
             sender: from,
           });
-          console.log(result)
+          console.log("result", result)
           let chatroomData = await DbController.findChatroom(
             phoneData.id,
             from
