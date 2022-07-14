@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const messageModel_1 = require("../models/whatsappModels/messageModel");
 const wabaModel_1 = require("../models/whatsappModels/wabaModel");
 const chatroomModel_1 = require("../models/whatsappModels/chatroomModel");
-class dbController {
+class DbController {
     constructor() { }
     async findPhoneData(phone_number_id) {
         try {
@@ -69,6 +69,21 @@ class dbController {
             throw error;
         }
     }
+    async createWabaPhone(phone_number, phone_number_id, waba_id, bot_url, token, verify_token) {
+        try {
+            return await wabaModel_1.PhonesModel.create({
+                phone_number,
+                phone_number_id,
+                waba_id,
+                bot_url,
+                token,
+                verify_token,
+            });
+        }
+        catch (error) {
+            throw error;
+        }
+    }
 }
-exports.default = new dbController();
+exports.default = new DbController();
 //# sourceMappingURL=dbController.js.map

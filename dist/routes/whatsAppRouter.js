@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const clientMessageController_1 = require("../controllers/clientMessageController");
+const dbController_1 = require("../controllers/dbController");
 const express_1 = require("express");
 const api_1 = require("../models/api");
 class WhatsappRouter {
@@ -11,6 +12,7 @@ class WhatsappRouter {
     endPoints() {
         this.router.post("/webhook", this.hook);
         this.router.get("/webhook", this.hookVeryfication);
+        this.router.post("/create_waba_phone", this.createWabaPhone);
     }
     async hook(req, res) {
         if (req.body.object) {
@@ -23,7 +25,7 @@ class WhatsappRouter {
                     const message = await clientMessageController_1.default.manageWebHook(req.body.entry[0].changes[0].value);
                     res.status(api_1.StandarCode.OK).json({
                         status: "success",
-                        message: "nada",
+                        message,
                     });
                 }
                 catch (error) {
@@ -57,6 +59,25 @@ class WhatsappRouter {
             else {
                 res.status(api_1.DataErrorCode.INVALID).json({ error: "BAD REQUEST" });
             }
+        }
+    }
+    async createWabaPhone(req, res) {
+        try {
+            if (req.body["phone_number"] &&
+                req.body["phone_number_id"] &&
+                req.body["waba_id"] &&
+                req.body["bot_url"] &&
+                req.body["token"] &&
+                req.body["verify_token"]) {
+                const message = await dbController_1.default.createWabaPhone(req.body["phone_number"], req.body["phone_number_id"], req.body["waba_id"], req.body["bot_url"], req.body["token"], req.body["verify_token"]);
+                res.status(api_1.StandarCode.OK).json({
+                    status: "success",
+                    message,
+                });
+            }
+        }
+        catch (error) {
+            res.status(api_1.DataErrorCode.INVALID).json(error);
         }
     }
 }

@@ -1,5 +1,5 @@
 import Axios from "axios";
-import dbController from "./dbController";
+import DbController from "./dbController";
 // import { TypeMessage } from "./../models/message";
 import {
   sendTextMessageToWhatsapp,
@@ -12,7 +12,7 @@ class ClientMessageController {
 
   public async handleHookVerify(token) {
     try {
-      return await dbController.findHookVerify(token);
+      return await DbController.findHookVerify(token);
     } catch (error) {
       throw error;
     }
@@ -83,31 +83,27 @@ class ClientMessageController {
         const from = data.messages[0].from; // extract the phone number from the webhook payload
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
         const msg_body = data.messages[0].text.body; // extract the message text from the webhook payload
-
-        const phoneData = await dbController.findPhoneData(phone_number_id);
+        const phoneData = await DbController.findPhoneData(phone_number_id);
         if (phoneData) {
-          const messageExists = await dbController.findMessage(msg_id);
+          const messageExists = await DbController.findMessage(msg_id);
           if (messageExists) {
             return;
           }
-          const { data: result } = await Axios.post(
-            phoneData.bot_url,
-            {
-              message: msg_body,
-              sender: from,
-            }
-          );
-          let chatroomData = await dbController.findChatroom(
+          const { data: result } = await Axios.post(phoneData.bot_url, {
+            message: msg_body,
+            sender: from,
+          });
+          let chatroomData = await DbController.findChatroom(
             phoneData.id,
             from
           );
           if (!chatroomData) {
-            chatroomData = await dbController.createChatroom(
+            chatroomData = await DbController.createChatroom(
               phoneData.id,
               from
             );
           }
-          await dbController.insertMessage(
+          await DbController.insertMessage(
             chatroomData.id,
             msg_id,
             msg_body,
@@ -144,7 +140,7 @@ class ClientMessageController {
         body,
         token
       );
-      await dbController.insertMessage(
+      await DbController.insertMessage(
         chatroom_id,
         waMessage.messages[0]["id"],
         body,
@@ -179,7 +175,7 @@ class ClientMessageController {
         filename,
         token
       );
-      await dbController.insertMessage(
+      await DbController.insertMessage(
         chatroom_id,
         waMessage.messages[0]["id"],
         null,
@@ -203,7 +199,7 @@ class ClientMessageController {
         token
       );
 
-      await dbController.insertMessage(
+      await DbController.insertMessage(
         chatroom_id,
         waMessage.messages[0]["id"],
         null,

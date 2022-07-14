@@ -1,4 +1,5 @@
-import clientMessage from "../controllers/clientMessageController";
+import ClientMessageController from "../controllers/clientMessageController";
+import DbController from "../controllers/dbController";
 import { Router, Request, Response } from "express";
 import { DataErrorCode, StandarCode } from "../models/api";
 
@@ -13,6 +14,7 @@ class WhatsappRouter {
   private endPoints(): void {
     this.router.post("/webhook", this.hook);
     this.router.get("/webhook", this.hookVeryfication);
+    this.router.post("/create_waba_phone", this.createWabaPhone);
     //this.router.post("/send_wa_message", this.sendWaMessage);
   }
 
@@ -26,12 +28,12 @@ class WhatsappRouter {
         req.body.entry[0].changes[0].value.messages[0]
       ) {
         try {
-          const message = await clientMessage.manageWebHook(
+          const message = await ClientMessageController.manageWebHook(
             req.body.entry[0].changes[0].value
           );
           res.status(StandarCode.OK).json({
             status: "success",
-            message: "nada",
+            message,
           });
         } catch (error) {
           res.status(DataErrorCode.INVALID).json(error);
@@ -59,7 +61,7 @@ class WhatsappRouter {
       // Check the mode and token sent are correct
       if (mode === "subscribe") {
         // Respond with 200 OK and challenge token from the request
-        const data = await clientMessage.handleHookVerify(token);
+        const data = await ClientMessageController.handleHookVerify(token);
         if (data) {
           res.status(200).send(challenge);
         } else {
@@ -69,6 +71,34 @@ class WhatsappRouter {
         // Responds with '403 Forbidden' if verify tokens do not match
         res.status(DataErrorCode.INVALID).json({ error: "BAD REQUEST" });
       }
+    }
+  }
+
+  private async createWabaPhone(req: Request, res: Response) {
+    try {
+      if (
+        req.body["phone_number"] &&
+        req.body["phone_number_id"] &&
+        req.body["waba_id"] &&
+        req.body["bot_url"] &&
+        req.body["token"] &&
+        req.body["verify_token"]
+      ) {
+        const message = await DbController.createWabaPhone(
+          req.body["phone_number"],
+          req.body["phone_number_id"],
+          req.body["waba_id"],
+          req.body["bot_url"],
+          req.body["token"],
+          req.body["verify_token"]
+        );
+        res.status(StandarCode.OK).json({
+          status: "success",
+          message,
+        });
+      }
+    } catch (error) {
+      res.status(DataErrorCode.INVALID).json(error);
     }
   }
 

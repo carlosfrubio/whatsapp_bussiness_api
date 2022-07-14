@@ -2,7 +2,7 @@ import { MessagesModel } from "../models/whatsappModels/messageModel";
 import { PhonesModel } from "../models/whatsappModels/wabaModel";
 import { ChatroomsModel } from "../models/whatsappModels/chatroomModel";
 
-class dbController {
+class DbController {
   constructor() {}
 
   public async findPhoneData(phone_number_id: string) {
@@ -74,6 +74,28 @@ class dbController {
       throw error;
     }
   }
+
+  public async createWabaPhone(
+    phone_number: string,
+    phone_number_id: string,
+    waba_id: string,
+    bot_url: string,
+    token: string,
+    verify_token: string
+  ) {
+    try {
+      return await PhonesModel.create({
+        phone_number,
+        phone_number_id,
+        waba_id,
+        bot_url,
+        token,
+        verify_token,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
-export default new dbController();
+export default new DbController();
