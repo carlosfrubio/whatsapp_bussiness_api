@@ -131,7 +131,7 @@ class ClientMessageController {
         return "OK";
       }
     } catch (error) {
-      console.log(error)
+      console.log(JSON.stringify(error))
       return error;
     }
   }
