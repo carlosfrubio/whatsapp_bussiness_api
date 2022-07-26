@@ -13,6 +13,24 @@ class DbController {
     }
   }
 
+  public async getPhonesData() {
+    try {
+      return await PhonesModel.find({});
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  public async updatePhoneData(id: String, payload: any) {
+    try {
+      const filter = { _id: id };
+      const update = { ...payload };
+      return await PhonesModel.findOneAndUpdate(filter, update);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   public async findHookVerify(verify_token: string) {
     try {
       return await PhonesModel.findOne({ verify_token });

@@ -13,6 +13,24 @@ class DbController {
             throw error;
         }
     }
+    async getPhonesData() {
+        try {
+            return await wabaModel_1.PhonesModel.find({});
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async updatePhoneData(id, payload) {
+        try {
+            const filter = { _id: id };
+            const update = { ...payload };
+            return await wabaModel_1.PhonesModel.findOneAndUpdate(filter, update);
+        }
+        catch (error) {
+            throw error;
+        }
+    }
     async findHookVerify(verify_token) {
         try {
             return await wabaModel_1.PhonesModel.findOne({ verify_token });

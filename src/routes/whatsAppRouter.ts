@@ -12,9 +12,11 @@ class WhatsappRouter {
   }
 
   private endPoints(): void {
-    this.router.post("/webhook", this.hook);
     this.router.get("/webhook", this.hookVeryfication);
+    this.router.get("/phones", this.getPhonesData);
+    this.router.post("/webhook", this.hook);
     this.router.post("/create_waba_phone", this.createWabaPhone);
+    this.router.put("/update_phone", this.updatePhoneData);
     //this.router.post("/send_wa_message", this.sendWaMessage);
   }
 
@@ -96,6 +98,42 @@ class WhatsappRouter {
           status: "success",
           message,
         });
+      }
+    } catch (error) {
+      res.status(DataErrorCode.INVALID).json(error);
+    }
+  }
+
+  private async getPhonesData(req: Request, res: Response) {
+    try {
+      const data = await DbController.getPhonesData();
+      res.status(StandarCode.OK).json({
+        status: "success",
+        data,
+      });
+    } catch (error) {
+      res.status(DataErrorCode.INVALID).json(error);
+    }
+  }
+
+  private async updatePhoneData(req: Request, res: Response) {
+    try {
+      if (req.body.id && req.body.payload) {
+        const { id, payload } = req.body;
+        const data = await DbController.updatePhoneData(id, payload);
+        if (data) {
+          res.status(StandarCode.OK).json({
+            status: "success",
+            data,
+          });
+        } else {
+          res.status(DataErrorCode.NOT_FOUND).json({
+            status: "error",
+            message: "Phone not found",
+          });
+        }
+      } else {
+        res.status(DataErrorCode.INVALID).json({ error: "EMPTY DATA" });
       }
     } catch (error) {
       res.status(DataErrorCode.INVALID).json(error);
