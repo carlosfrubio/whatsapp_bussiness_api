@@ -1,10 +1,12 @@
 import Axios from "axios";
 import DbController from "./dbController";
-// import { TypeMessage } from "./../models/message";
+import { IWebhookMessage, TypeMessage } from "../models/WabaWebhook";
 import {
   sendTextMessageToWhatsapp,
   sendDocumentMessageToWhatsapp,
   sendImageMessageToWhatsapp,
+  sendTemplateMessageToWhatsapp,
+  sendInteractiveMessageToWhatsapp,
 } from "./whatsAppApi";
 
 class ClientMessageController {
@@ -26,7 +28,6 @@ class ClientMessageController {
     token,
     chatroom_id,
   }) {
-    console.log("ENTRO AL BOT RESPONSE")
     try {
       for (const response of result) {
         if (response.hasOwnProperty("text") && response.text !== "") {
@@ -67,6 +68,35 @@ class ClientMessageController {
             image_id: response.custom.image,
           });
           await this.timer();
+        } else if (
+          response.hasOwnProperty("custom") &&
+          response.custom.hasOwnProperty("template")
+        ) {
+          await this.sendTemplateMessage({
+            phone_number_id,
+            chatroom_id,
+            token,
+            to,
+            from,
+            template: response.custom.template,
+            language: "es_MX",
+          });
+        } else if (
+          response.hasOwnProperty("custom") &&
+          response.custom.hasOwnProperty("interactive")
+        ) {
+          await this.sendInteractiveMessage({
+            phone_number_id,
+            chatroom_id,
+            token,
+            to,
+            from,
+            header: response.custom.interactive?.header,
+            body: response.custom.interactive?.body,
+            footer: response.custom.interactive?.footer,
+            type: response.custom.interactive?.type,
+            action: response.custom.interactive?.action,
+          });
         }
       }
       return true;
@@ -74,8 +104,9 @@ class ClientMessageController {
       return error;
     }
   }
-  public async manageWebHook(data) {
+  public async manageWebHook(data: IWebhookMessage) {
     try {
+      console.log("INCOMING_MESSAGE", JSON.stringify(data));
       if (
         data.hasOwnProperty("messages") &&
         data.messages[0].text?.body !== ""
@@ -83,20 +114,27 @@ class ClientMessageController {
         const phone_number_id = data.metadata.phone_number_id;
         const from = data.messages[0].from; // extract the phone number from the webhook payload
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
-        const msg_body = data.messages[0].text.body; // extract the message text from the webhook payload
+        const msg_type = data.messages[0].type;
         const phoneData = await DbController.findPhoneData(phone_number_id);
-        console.log("messageExists", phoneData)
+        let msg_body = ""; // extract the message text from the webhook payload
+
+        if (msg_type === TypeMessage.Text) {
+          msg_body = data.messages[0].text.body;
+        } else if (msg_type === TypeMessage.Button) {
+          msg_body = data.messages[0].button.payload;
+        } else if (msg_type === TypeMessage.Interactive) {
+          msg_body = data.messages[0].interactive.button_reply.id;
+        }
+
         if (phoneData) {
           const messageExists = await DbController.findMessage(msg_id);
           if (messageExists) {
-            console.log("messageExists", messageExists)
             return;
           }
           const { data: result } = await Axios.post(phoneData.bot_url, {
             message: msg_body,
             sender: from,
           });
-          console.log("result", result)
           let chatroomData = await DbController.findChatroom(
             phoneData.id,
             from
@@ -131,7 +169,6 @@ class ClientMessageController {
         return "OK";
       }
     } catch (error) {
-      console.log(JSON.stringify(error))
       return error;
     }
   }
@@ -155,7 +192,78 @@ class ClientMessageController {
       );
       return "Ok";
     } catch (error) {
-      console.log("CATCH", error);
+      return error;
+    }
+  }
+
+  public async sendTemplateMessage(data) {
+    const {
+      to,
+      from,
+      template,
+      token,
+      chatroom_id,
+      phone_number_id,
+      language,
+    } = data;
+    try {
+      const waMessage = await sendTemplateMessageToWhatsapp(
+        phone_number_id,
+        to,
+        template,
+        token,
+        language
+      );
+      console.log(waMessage);
+      await DbController.insertMessage(
+        chatroom_id,
+        waMessage.messages[0]["id"],
+        template,
+        null,
+        null,
+        from
+      );
+      return "Ok";
+    } catch (error) {
+      return error;
+    }
+  }
+
+  public async sendInteractiveMessage(data) {
+    const {
+      to,
+      from,
+      token,
+      chatroom_id,
+      phone_number_id,
+      header,
+      body,
+      footer,
+      type,
+      action,
+    } = data;
+    try {
+      const waMessage = await sendInteractiveMessageToWhatsapp(
+        phone_number_id,
+        to,
+        token,
+        header,
+        body,
+        footer,
+        type,
+        action
+      );
+      console.log(waMessage);
+      await DbController.insertMessage(
+        chatroom_id,
+        waMessage.messages[0]["id"],
+        body,
+        null,
+        null,
+        from
+      );
+      return "Ok";
+    } catch (error) {
       return error;
     }
   }
@@ -190,7 +298,6 @@ class ClientMessageController {
       );
       return "Ok";
     } catch (error) {
-      console.log("CATCH", error);
       return error;
     }
   }
@@ -214,7 +321,6 @@ class ClientMessageController {
       );
       return "Ok";
     } catch (error) {
-      console.log("CATCH", error);
       return error;
     }
   }

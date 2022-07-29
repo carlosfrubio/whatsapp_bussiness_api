@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = require("axios");
 const dbController_1 = require("./dbController");
+const WabaWebhook_1 = require("../models/WabaWebhook");
 const whatsAppApi_1 = require("./whatsAppApi");
 class ClientMessageController {
     constructor() { }
@@ -14,8 +15,7 @@ class ClientMessageController {
         }
     }
     async handleBotResponses({ from, to, result, phone_number_id, token, chatroom_id, }) {
-        var _a;
-        console.log("ENTRO AL BOT RESPONSE");
+        var _a, _b, _c, _d, _e, _f;
         try {
             for (const response of result) {
                 if (response.hasOwnProperty("text") && response.text !== "") {
@@ -55,6 +55,33 @@ class ClientMessageController {
                     });
                     await this.timer();
                 }
+                else if (response.hasOwnProperty("custom") &&
+                    response.custom.hasOwnProperty("template")) {
+                    await this.sendTemplateMessage({
+                        phone_number_id,
+                        chatroom_id,
+                        token,
+                        to,
+                        from,
+                        template: response.custom.template,
+                        language: "es_MX",
+                    });
+                }
+                else if (response.hasOwnProperty("custom") &&
+                    response.custom.hasOwnProperty("interactive")) {
+                    await this.sendInteractiveMessage({
+                        phone_number_id,
+                        chatroom_id,
+                        token,
+                        to,
+                        from,
+                        header: (_b = response.custom.interactive) === null || _b === void 0 ? void 0 : _b.header,
+                        body: (_c = response.custom.interactive) === null || _c === void 0 ? void 0 : _c.body,
+                        footer: (_d = response.custom.interactive) === null || _d === void 0 ? void 0 : _d.footer,
+                        type: (_e = response.custom.interactive) === null || _e === void 0 ? void 0 : _e.type,
+                        action: (_f = response.custom.interactive) === null || _f === void 0 ? void 0 : _f.action,
+                    });
+                }
             }
             return true;
         }
@@ -65,25 +92,33 @@ class ClientMessageController {
     async manageWebHook(data) {
         var _a;
         try {
+            console.log("INCOMING_MESSAGE", JSON.stringify(data));
             if (data.hasOwnProperty("messages") &&
                 ((_a = data.messages[0].text) === null || _a === void 0 ? void 0 : _a.body) !== "") {
                 const phone_number_id = data.metadata.phone_number_id;
                 const from = data.messages[0].from;
                 const msg_id = data.messages[0].id;
-                const msg_body = data.messages[0].text.body;
+                const msg_type = data.messages[0].type;
                 const phoneData = await dbController_1.default.findPhoneData(phone_number_id);
-                console.log("messageExists", phoneData);
+                let msg_body = "";
+                if (msg_type === WabaWebhook_1.TypeMessage.Text) {
+                    msg_body = data.messages[0].text.body;
+                }
+                else if (msg_type === WabaWebhook_1.TypeMessage.Button) {
+                    msg_body = data.messages[0].button.payload;
+                }
+                else if (msg_type === WabaWebhook_1.TypeMessage.Interactive) {
+                    msg_body = data.messages[0].interactive.button_reply.id;
+                }
                 if (phoneData) {
                     const messageExists = await dbController_1.default.findMessage(msg_id);
                     if (messageExists) {
-                        console.log("messageExists", messageExists);
                         return;
                     }
                     const { data: result } = await axios_1.default.post(phoneData.bot_url, {
                         message: msg_body,
                         sender: from,
                     });
-                    console.log("result", result);
                     let chatroomData = await dbController_1.default.findChatroom(phoneData.id, from);
                     if (!chatroomData) {
                         chatroomData = await dbController_1.default.createChatroom(phoneData.id, from);
@@ -108,7 +143,6 @@ class ClientMessageController {
             }
         }
         catch (error) {
-            console.log(JSON.stringify(error));
             return error;
         }
     }
@@ -120,7 +154,30 @@ class ClientMessageController {
             return "Ok";
         }
         catch (error) {
-            console.log("CATCH", error);
+            return error;
+        }
+    }
+    async sendTemplateMessage(data) {
+        const { to, from, template, token, chatroom_id, phone_number_id, language, } = data;
+        try {
+            const waMessage = await whatsAppApi_1.sendTemplateMessageToWhatsapp(phone_number_id, to, template, token, language);
+            console.log(waMessage);
+            await dbController_1.default.insertMessage(chatroom_id, waMessage.messages[0]["id"], template, null, null, from);
+            return "Ok";
+        }
+        catch (error) {
+            return error;
+        }
+    }
+    async sendInteractiveMessage(data) {
+        const { to, from, token, chatroom_id, phone_number_id, header, body, footer, type, action, } = data;
+        try {
+            const waMessage = await whatsAppApi_1.sendInteractiveMessageToWhatsapp(phone_number_id, to, token, header, body, footer, type, action);
+            console.log(waMessage);
+            await dbController_1.default.insertMessage(chatroom_id, waMessage.messages[0]["id"], body, null, null, from);
+            return "Ok";
+        }
+        catch (error) {
             return error;
         }
     }
@@ -132,7 +189,6 @@ class ClientMessageController {
             return "Ok";
         }
         catch (error) {
-            console.log("CATCH", error);
             return error;
         }
     }
@@ -144,7 +200,6 @@ class ClientMessageController {
             return "Ok";
         }
         catch (error) {
-            console.log("CATCH", error);
             return error;
         }
     }
