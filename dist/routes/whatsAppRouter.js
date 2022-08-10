@@ -1,9 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const multer = require("multer");
 const clientMessageController_1 = require("../controllers/clientMessageController");
 const dbController_1 = require("../controllers/dbController");
+const whatsAppApi_1 = require("../controllers/whatsAppApi");
 const express_1 = require("express");
 const api_1 = require("../models/api");
+const path = require("../constans/uploads");
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+const upload = multer({ storage: storage });
 class WhatsappRouter {
     constructor() {
         this.router = express_1.Router();
@@ -12,6 +24,8 @@ class WhatsappRouter {
     endPoints() {
         this.router.get("/webhook", this.hookVeryfication);
         this.router.get("/phones", this.getPhonesData);
+        this.router.post("/media_url", this.getWabaMediaUrl);
+        this.router.post("/upload_media", upload.single("file"), this.uploadMedia);
         this.router.post("/webhook", this.hook);
         this.router.post("/create_waba_phone", this.createWabaPhone);
         this.router.put("/update_phone", this.updatePhoneData);
@@ -117,6 +131,48 @@ class WhatsappRouter {
             }
         }
         catch (error) {
+            res.status(api_1.DataErrorCode.INVALID).json(error);
+        }
+    }
+    async getWabaMediaUrl(req, res) {
+        const { media_id, phone_number_id } = req.body;
+        try {
+            const phoneData = await dbController_1.default.findPhoneData(phone_number_id);
+            if (!phoneData) {
+                res.status(api_1.DataErrorCode.INVALID).json({ error: "Phone not found!" });
+            }
+            else {
+                const message = await whatsAppApi_1.getMediaUrl(media_id, phoneData.token);
+                console.log(message);
+                res.status(api_1.StandarCode.OK).json({
+                    status: "success",
+                    data: message,
+                });
+            }
+        }
+        catch (error) {
+            res.status(api_1.DataErrorCode.INVALID).json(error);
+            console.log("Envio un ERROR");
+        }
+    }
+    async uploadMedia(req, res) {
+        const { phone_number_id } = req.body;
+        const file = req.file;
+        try {
+            const phoneData = await dbController_1.default.findPhoneData(phone_number_id);
+            if (!phoneData) {
+                res.status(api_1.DataErrorCode.INVALID).json({ error: "Phone not found!" });
+            }
+            else {
+                const message = await whatsAppApi_1.uploadFileToWhatsapp(file, phone_number_id, phoneData.token);
+                res.status(api_1.StandarCode.OK).json({
+                    status: "success",
+                    data: message,
+                });
+            }
+        }
+        catch (error) {
+            console.log(error);
             res.status(api_1.DataErrorCode.INVALID).json(error);
         }
     }

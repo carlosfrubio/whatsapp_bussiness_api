@@ -5,21 +5,27 @@ import {
   IInteractiveMessage,
 } from "../models/WabaWebhook";
 
+const fs = require("fs");
+const FormData = require("form-data");
+const path = require("../constans/uploads");
+const URI = "https://graph.facebook.com/v12.0/";
+
 export const uploadFileToWhatsapp = async (file, phone_number_id, token) => {
   try {
-    const data = new FormData();
-    data.append("messaging_product", "whatsapp");
-    data.append("file", file);
-    const whatsAppResponse = await Axios({
-      method: "post",
-      url:
-        "https://graph.facebook.com/v12.0/" +
-        phone_number_id +
-        "/media?access_token=" +
-        token,
-      data: data,
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const fileData = fs.createReadStream(path.dir + file.filename);
+    const form = new FormData();
+    form.append("messaging_product", "whatsapp");
+    form.append("file", fileData, file.filename);
+    const whatsAppResponse = await Axios.post(
+      URI + phone_number_id + "/media",
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return whatsAppResponse.data;
   } catch (error) {
     throw error;
@@ -40,11 +46,7 @@ export const sendTextMessageToWhatsapp = async (
     };
     const whatsAppResponse = await Axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-      url:
-        "https://graph.facebook.com/v12.0/" +
-        phone_number_id +
-        "/messages?access_token=" +
-        token,
+      url: URI + phone_number_id + "/messages?access_token=" + token,
       data,
       headers: { "Content-Type": "application/json" },
     });
@@ -77,11 +79,7 @@ export const sendTemplateMessageToWhatsapp = async (
     };
     const whatsAppResponse = await Axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-      url:
-        "https://graph.facebook.com/v12.0/" +
-        phone_number_id +
-        "/messages?access_token=" +
-        token,
+      url: URI + phone_number_id + "/messages?access_token=" + token,
       data,
       headers: { "Content-Type": "application/json" },
     });
@@ -115,14 +113,10 @@ export const sendInteractiveMessageToWhatsapp = async (
         action,
       },
     };
-    console.log(JSON.stringify(data))
+    console.log(JSON.stringify(data));
     const whatsAppResponse = await Axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-      url:
-        "https://graph.facebook.com/v12.0/" +
-        phone_number_id +
-        "/messages?access_token=" +
-        token,
+      url: URI + phone_number_id + "/messages?access_token=" + token,
       data,
       headers: { "Content-Type": "application/json" },
     });
@@ -141,11 +135,7 @@ export const sendImageMessageToWhatsapp = async (
   try {
     const whatsAppResponse = await Axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-      url:
-        "https://graph.facebook.com/v12.0/" +
-        phone_number_id +
-        "/messages?access_token=" +
-        token,
+      url: URI + phone_number_id + "/messages?access_token=" + token,
       data: {
         messaging_product: "whatsapp",
         to: to,
@@ -173,11 +163,7 @@ export const sendDocumentMessageToWhatsapp = async (
   try {
     const whatsAppResponse = await Axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-      url:
-        "https://graph.facebook.com/v12.0/" +
-        phone_number_id +
-        "/messages?access_token=" +
-        token,
+      url: URI + phone_number_id + "/messages?access_token=" + token,
       data: {
         messaging_product: "whatsapp",
         to: to,
@@ -191,6 +177,38 @@ export const sendDocumentMessageToWhatsapp = async (
       headers: { "Content-Type": "application/json" },
     });
     return whatsAppResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMediaUrl = async (media_id: string, token: string) => {
+  try {
+    const whatsAppResponse = await Axios({
+      method: "GET", // Required, HTTP method, a string, e.g. POST, GET
+      url: URI + media_id,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return whatsAppResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getMedia = async (media_url: string, token: string) => {
+  try {
+    const whatsAppResponse = await Axios({
+      method: "GET", // Required, HTTP method, a string, e.g. POST, GET
+      url: media_url,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return whatsAppResponse;
   } catch (error) {
     throw error;
   }

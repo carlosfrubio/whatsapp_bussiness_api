@@ -1,20 +1,22 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendDocumentMessageToWhatsapp = exports.sendImageMessageToWhatsapp = exports.sendInteractiveMessageToWhatsapp = exports.sendTemplateMessageToWhatsapp = exports.sendTextMessageToWhatsapp = exports.uploadFileToWhatsapp = void 0;
+exports.getMedia = exports.getMediaUrl = exports.sendDocumentMessageToWhatsapp = exports.sendImageMessageToWhatsapp = exports.sendInteractiveMessageToWhatsapp = exports.sendTemplateMessageToWhatsapp = exports.sendTextMessageToWhatsapp = exports.uploadFileToWhatsapp = void 0;
 const axios_1 = require("axios");
+const fs = require("fs");
+const FormData = require("form-data");
+const path = require("../constans/uploads");
+const URI = "https://graph.facebook.com/v12.0/";
 const uploadFileToWhatsapp = async (file, phone_number_id, token) => {
     try {
-        const data = new FormData();
-        data.append("messaging_product", "whatsapp");
-        data.append("file", file);
-        const whatsAppResponse = await axios_1.default({
-            method: "post",
-            url: "https://graph.facebook.com/v12.0/" +
-                phone_number_id +
-                "/media?access_token=" +
-                token,
-            data: data,
-            headers: { "Content-Type": "multipart/form-data" },
+        const fileData = fs.createReadStream(path.dir + file.filename);
+        const form = new FormData();
+        form.append("messaging_product", "whatsapp");
+        form.append("file", fileData, file.filename);
+        const whatsAppResponse = await axios_1.default.post(URI + phone_number_id + "/media", form, {
+            headers: {
+                ...form.getHeaders(),
+                Authorization: `Bearer ${token}`,
+            },
         });
         return whatsAppResponse.data;
     }
@@ -32,10 +34,7 @@ const sendTextMessageToWhatsapp = async (phone_number_id, to, body, token) => {
         };
         const whatsAppResponse = await axios_1.default({
             method: "POST",
-            url: "https://graph.facebook.com/v12.0/" +
-                phone_number_id +
-                "/messages?access_token=" +
-                token,
+            url: URI + phone_number_id + "/messages?access_token=" + token,
             data,
             headers: { "Content-Type": "application/json" },
         });
@@ -62,10 +61,7 @@ const sendTemplateMessageToWhatsapp = async (phone_number_id, to, template, toke
         };
         const whatsAppResponse = await axios_1.default({
             method: "POST",
-            url: "https://graph.facebook.com/v12.0/" +
-                phone_number_id +
-                "/messages?access_token=" +
-                token,
+            url: URI + phone_number_id + "/messages?access_token=" + token,
             data,
             headers: { "Content-Type": "application/json" },
         });
@@ -94,10 +90,7 @@ const sendInteractiveMessageToWhatsapp = async (phone_number_id, to, token, head
         console.log(JSON.stringify(data));
         const whatsAppResponse = await axios_1.default({
             method: "POST",
-            url: "https://graph.facebook.com/v12.0/" +
-                phone_number_id +
-                "/messages?access_token=" +
-                token,
+            url: URI + phone_number_id + "/messages?access_token=" + token,
             data,
             headers: { "Content-Type": "application/json" },
         });
@@ -112,10 +105,7 @@ const sendImageMessageToWhatsapp = async (phone_number_id, to, image_id, token) 
     try {
         const whatsAppResponse = await axios_1.default({
             method: "POST",
-            url: "https://graph.facebook.com/v12.0/" +
-                phone_number_id +
-                "/messages?access_token=" +
-                token,
+            url: URI + phone_number_id + "/messages?access_token=" + token,
             data: {
                 messaging_product: "whatsapp",
                 to: to,
@@ -137,10 +127,7 @@ const sendDocumentMessageToWhatsapp = async (phone_number_id, to, document_id, c
     try {
         const whatsAppResponse = await axios_1.default({
             method: "POST",
-            url: "https://graph.facebook.com/v12.0/" +
-                phone_number_id +
-                "/messages?access_token=" +
-                token,
+            url: URI + phone_number_id + "/messages?access_token=" + token,
             data: {
                 messaging_product: "whatsapp",
                 to: to,
@@ -160,4 +147,38 @@ const sendDocumentMessageToWhatsapp = async (phone_number_id, to, document_id, c
     }
 };
 exports.sendDocumentMessageToWhatsapp = sendDocumentMessageToWhatsapp;
+const getMediaUrl = async (media_id, token) => {
+    try {
+        const whatsAppResponse = await axios_1.default({
+            method: "GET",
+            url: URI + media_id,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return whatsAppResponse.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.getMediaUrl = getMediaUrl;
+const getMedia = async (media_url, token) => {
+    try {
+        const whatsAppResponse = await axios_1.default({
+            method: "GET",
+            url: media_url,
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return whatsAppResponse;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.getMedia = getMedia;
 //# sourceMappingURL=whatsAppApi.js.map
