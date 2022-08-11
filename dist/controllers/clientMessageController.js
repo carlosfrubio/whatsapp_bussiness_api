@@ -110,6 +110,13 @@ class ClientMessageController {
                 else if (msg_type === WabaWebhook_1.TypeMessage.Interactive) {
                     msg_body = data.messages[0].interactive.button_reply.id;
                 }
+                else if (msg_type === WabaWebhook_1.TypeMessage.Image) {
+                    msg_body = "PIC: " + data.messages[0].image.id;
+                }
+                else if (msg_type === WabaWebhook_1.TypeMessage.Document) {
+                    msg_body = "DOC: " + data.messages[0].document.id;
+                }
+                console.log(msg_body);
                 if (phoneData) {
                     const messageExists = await dbController_1.default.findMessage(msg_id);
                     if (messageExists) {
