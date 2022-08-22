@@ -26,6 +26,7 @@ class WhatsappRouter {
         this.router.get("/phones", this.getPhonesData);
         this.router.post("/media_url", this.getWabaMediaUrl);
         this.router.post("/upload_media", upload.single("file"), this.uploadMedia);
+        this.router.post("/download_media", this.downLoadMedia);
         this.router.post("/webhook", this.hook);
         this.router.post("/create_waba_phone", this.createWabaPhone);
         this.router.put("/update_phone", this.updatePhoneData);
@@ -174,6 +175,27 @@ class WhatsappRouter {
         catch (error) {
             console.log(error);
             res.status(api_1.DataErrorCode.INVALID).json(error);
+        }
+    }
+    async downLoadMedia(req, res) {
+        const { media_url, phone_number_id } = req.body;
+        try {
+            const phoneData = await dbController_1.default.findPhoneData(phone_number_id);
+            if (!phoneData) {
+                res.status(api_1.DataErrorCode.INVALID).json({ error: "Phone not found!" });
+            }
+            else {
+                const response = await whatsAppApi_1.getMedia(media_url, phoneData.token);
+                res.status(api_1.StandarCode.OK).json({
+                    status: "success",
+                    data: response,
+                });
+            }
+        }
+        catch (error) {
+            console.log("ERROR R", error);
+            res.status(api_1.DataErrorCode.INVALID).json(error);
+            console.log("Envio un ERROR");
         }
     }
 }

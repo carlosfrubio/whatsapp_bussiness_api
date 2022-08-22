@@ -4,7 +4,9 @@ import {
   ITemplateMessage,
   IInteractiveMessage,
 } from "../models/WabaWebhook";
+import firebaseAdmin from "../services/firebase";
 
+const uuid = require("uuid-v4");
 const fs = require("fs");
 const FormData = require("form-data");
 const path = require("../constans/uploads");
@@ -200,15 +202,40 @@ export const getMediaUrl = async (media_id: string, token: string) => {
 
 export const getMedia = async (media_url: string, token: string) => {
   try {
-    const whatsAppResponse = await Axios({
-      method: "GET", // Required, HTTP method, a string, e.g. POST, GET
+    const response = await Axios({
+      method: "GET",
       url: media_url,
+      responseType: "stream",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
     });
-    return whatsAppResponse;
+    const fileName = response.headers["x-fb-trip-id"];
+    const fileExtention = response.headers["content-type"].split("/")[1];
+    await response.data.pipe(
+      fs.createWriteStream(`${path.dir}${fileName}.${fileExtention}`)
+    );
+    const bucket = await firebaseAdmin.storage().bucket();
+    const fileToken = uuid();
+    const fb_res = await bucket.upload(
+      `${path.dir}${fileName}.${fileExtention}`,
+      {
+        destination: `whatsapp/ingredion/${fileName}.${fileExtention}`,
+        metadata: {
+          cacheControl: "max-age=31536000",
+          metadata: {
+            firebaseStorageDownloadTokens: fileToken,
+          },
+        },
+      }
+    );
+
+    return `https://firebasestorage.googleapis.com/v0/b/${
+      fb_res[0]["metadata"]["bucket"]
+    }/o/${encodeURIComponent(
+      fb_res[0]["metadata"]["name"]
+    )}?alt=media&token=${fileToken}`;
   } catch (error) {
     throw error;
   }

@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMedia = exports.getMediaUrl = exports.sendDocumentMessageToWhatsapp = exports.sendImageMessageToWhatsapp = exports.sendInteractiveMessageToWhatsapp = exports.sendTemplateMessageToWhatsapp = exports.sendTextMessageToWhatsapp = exports.uploadFileToWhatsapp = void 0;
 const axios_1 = require("axios");
+const firebase_1 = require("../services/firebase");
+const uuid = require("uuid-v4");
 const fs = require("fs");
 const FormData = require("form-data");
 const path = require("../constans/uploads");
@@ -166,15 +168,30 @@ const getMediaUrl = async (media_id, token) => {
 exports.getMediaUrl = getMediaUrl;
 const getMedia = async (media_url, token) => {
     try {
-        const whatsAppResponse = await axios_1.default({
+        const response = await axios_1.default({
             method: "GET",
             url: media_url,
+            responseType: "stream",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
         });
-        return whatsAppResponse;
+        const fileName = response.headers["x-fb-trip-id"];
+        const fileExtention = response.headers["content-type"].split("/")[1];
+        await response.data.pipe(fs.createWriteStream(`${path.dir}${fileName}.${fileExtention}`));
+        const bucket = await firebase_1.default.storage().bucket();
+        const fileToken = uuid();
+        const fb_res = await bucket.upload(`${path.dir}${fileName}.${fileExtention}`, {
+            destination: `whatsapp/ingredion/${fileName}.${fileExtention}`,
+            metadata: {
+                cacheControl: "max-age=31536000",
+                metadata: {
+                    firebaseStorageDownloadTokens: fileToken,
+                },
+            },
+        });
+        return `https://firebasestorage.googleapis.com/v0/b/${fb_res[0]["metadata"]["bucket"]}/o/${encodeURIComponent(fb_res[0]["metadata"]["name"])}?alt=media&token=${fileToken}`;
     }
     catch (error) {
         throw error;

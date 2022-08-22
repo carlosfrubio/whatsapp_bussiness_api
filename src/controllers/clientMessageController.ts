@@ -7,6 +7,8 @@ import {
   sendImageMessageToWhatsapp,
   sendTemplateMessageToWhatsapp,
   sendInteractiveMessageToWhatsapp,
+  getMediaUrl,
+  getMedia
 } from "./whatsAppApi";
 
 class ClientMessageController {
@@ -125,9 +127,9 @@ class ClientMessageController {
         } else if (msg_type === TypeMessage.Interactive) {
           msg_body = data.messages[0].interactive.button_reply.id;
         } else if (msg_type === TypeMessage.Image) {
-          msg_body = "PIC: " + data.messages[0].image.id
+          msg_body = "PIC|" + data.messages[0].image.id
         } else if (msg_type === TypeMessage.Document) {
-          msg_body = "DOC: " + data.messages[0].document.id
+          msg_body = "DOC|" + data.messages[0].document.id
         }
         console.log(msg_body)
         if (phoneData) {

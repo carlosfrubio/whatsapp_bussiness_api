@@ -35,7 +35,7 @@ class WhatsappRouter {
     this.router.get("/phones", this.getPhonesData);
     this.router.post("/media_url", this.getWabaMediaUrl);
     this.router.post("/upload_media", upload.single("file"), this.uploadMedia);
-    //this.router.post("/download_media", this.downLoadMedia);
+    this.router.post("/download_media", this.downLoadMedia);
     this.router.post("/webhook", this.hook);
     this.router.post("/create_waba_phone", this.createWabaPhone);
     this.router.put("/update_phone", this.updatePhoneData);
@@ -222,7 +222,7 @@ class WhatsappRouter {
     }
   }
 
-  /* private async downLoadMedia(req: Request, res: Response) {
+  private async downLoadMedia(req: Request, res: Response) {
     const { media_url, phone_number_id } = req.body;
     try {
       const phoneData = await DbController.findPhoneData(phone_number_id);
@@ -230,14 +230,17 @@ class WhatsappRouter {
         res.status(DataErrorCode.INVALID).json({ error: "Phone not found!" });
       } else {
         const response = await getMedia(media_url, phoneData.token);
-      
-        res.writeHead(200, {'Content-Type': });
+        res.status(StandarCode.OK).json({
+          status: "success",
+          data: response,
+        });
       }
     } catch (error) {
+      console.log("ERROR R", error);
       res.status(DataErrorCode.INVALID).json(error);
       console.log("Envio un ERROR");
     }
-  } */
+  }
 }
 
 export default new WhatsappRouter().router;
