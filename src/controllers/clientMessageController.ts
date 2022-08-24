@@ -132,14 +132,16 @@ class ClientMessageController {
         } else if (msg_type === TypeMessage.Image) {
           const downloadUrl = await this.getFileUrl(
             data.messages[0].image.id,
-            phoneData.token
+            phoneData.token,
+            phoneData.waba_id
           );
           msg_image = { id: data.messages[0].image.id, downloadUrl };
           msg_body = `FILE|${downloadUrl}`;
         } else if (msg_type === TypeMessage.Document) {
           const downloadUrl = await this.getFileUrl(
             data.messages[0].document.id,
-            phoneData.token
+            phoneData.token,
+            phoneData.waba_id
           );
           msg_document = { id: data.messages[0].document.id, downloadUrl };
           msg_body = `FILE|${downloadUrl}`;
@@ -345,10 +347,10 @@ class ClientMessageController {
     }
   }
 
-  private async getFileUrl(media_id, token) {
+  private async getFileUrl(media_id, token, waba_id) {
     try {
       const wabaUrl = await getMediaUrl(media_id, token);
-      const downLoadUrl = await getMedia(wabaUrl.url, token);
+      const downLoadUrl = await getMedia(wabaUrl.url, token, waba_id);
       console.log("downLoadUrl", downLoadUrl);
       return `${downLoadUrl}`;
     } catch (error) {

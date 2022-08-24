@@ -200,7 +200,11 @@ export const getMediaUrl = async (media_id: string, token: string) => {
   }
 };
 
-export const getMedia = async (media_url: string, token: string) => {
+export const getMedia = async (
+  media_url: string,
+  token: string,
+  waba_id: string
+) => {
   try {
     const response = await Axios({
       method: "GET",
@@ -222,7 +226,7 @@ export const getMedia = async (media_url: string, token: string) => {
     });
     const bucket = await firebaseAdmin.storage().bucket();
     const fb_res = await bucket.upload(fileLocation, {
-      destination: `whatsapp/ingredion/${fileToken}.${fileExtention}`,
+      destination: `whatsapp/${waba_id}/${fileToken}.${fileExtention}`,
       metadata: {
         cacheControl: "max-age=31536000",
         metadata: {

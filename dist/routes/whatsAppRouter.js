@@ -185,7 +185,7 @@ class WhatsappRouter {
                 res.status(api_1.DataErrorCode.INVALID).json({ error: "Phone not found!" });
             }
             else {
-                const response = await whatsAppApi_1.getMedia(media_url, phoneData.token);
+                const response = await whatsAppApi_1.getMedia(media_url, phoneData.token, phoneData.waba_id);
                 res.status(api_1.StandarCode.OK).json({
                     status: "success",
                     data: response,

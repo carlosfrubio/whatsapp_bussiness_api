@@ -113,12 +113,12 @@ class ClientMessageController {
                     msg_body = data.messages[0].interactive.button_reply.id;
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Image) {
-                    const downloadUrl = await this.getFileUrl(data.messages[0].image.id, phoneData.token);
+                    const downloadUrl = await this.getFileUrl(data.messages[0].image.id, phoneData.token, phoneData.waba_id);
                     msg_image = { id: data.messages[0].image.id, downloadUrl };
                     msg_body = `FILE|${downloadUrl}`;
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Document) {
-                    const downloadUrl = await this.getFileUrl(data.messages[0].document.id, phoneData.token);
+                    const downloadUrl = await this.getFileUrl(data.messages[0].document.id, phoneData.token, phoneData.waba_id);
                     msg_document = { id: data.messages[0].document.id, downloadUrl };
                     msg_body = `FILE|${downloadUrl}`;
                 }
@@ -215,10 +215,10 @@ class ClientMessageController {
             return error;
         }
     }
-    async getFileUrl(media_id, token) {
+    async getFileUrl(media_id, token, waba_id) {
         try {
             const wabaUrl = await whatsAppApi_1.getMediaUrl(media_id, token);
-            const downLoadUrl = await whatsAppApi_1.getMedia(wabaUrl.url, token);
+            const downLoadUrl = await whatsAppApi_1.getMedia(wabaUrl.url, token, waba_id);
             console.log("downLoadUrl", downLoadUrl);
             return `${downLoadUrl}`;
         }
