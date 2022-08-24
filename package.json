@@ -10,14 +10,14 @@
     "dev": "tsc && concurrently \"tsc -w\" \"nodemon dist/index.js\""
   },
   "keywords": [],
-  "author": "Uriel Escorcia <uris.ec10@gmail.com>",
+  "author": "Carlos Rubio <carlos.rubio@ia-aplicada.com>",
   "license": "ISC",
   "dependencies": {
     "axios": "0.21.4",
     "body-parser": "1.19.0",
     "cors": "2.8.5",
     "express": "4.17.1",
-    "firebase-admin": "11.0.1",
+    "firebase-admin": "9.4.1",
     "form-data": "4.0.0",
     "helmet": "4.2.0",
     "moment": "2.29.1",
