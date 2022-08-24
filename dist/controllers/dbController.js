@@ -59,6 +59,7 @@ class DbController {
         }
     }
     async insertMessage(chatroom_id, message_id, text, image, document, whatsapp) {
+        console.log("INGRESO A INSERT");
         try {
             return await messageModel_1.MessagesModel.create({
                 chatroom_id,

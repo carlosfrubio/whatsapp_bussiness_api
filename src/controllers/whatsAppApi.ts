@@ -211,25 +211,25 @@ export const getMedia = async (media_url: string, token: string) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    const fileName = response.headers["x-fb-trip-id"];
-    const fileExtention = response.headers["content-type"].split("/")[1];
-    await response.data.pipe(
-      fs.createWriteStream(`${path.dir}${fileName}.${fileExtention}`)
-    );
-    const bucket = await firebaseAdmin.storage().bucket();
     const fileToken = uuid();
-    const fb_res = await bucket.upload(
-      `${path.dir}${fileName}.${fileExtention}`,
-      {
-        destination: `whatsapp/ingredion/${fileName}.${fileExtention}`,
+    const fileExtention = response.headers["content-type"].split("/")[1];
+    const fileLocation = `${path.dir}${fileToken}.${fileExtention}`;
+    await response.data.pipe(fs.createWriteStream(fileLocation));
+    await new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve("TIEM TO SAVE DOC");
+      }, 200);
+    });
+    const bucket = await firebaseAdmin.storage().bucket();
+    const fb_res = await bucket.upload(fileLocation, {
+      destination: `whatsapp/ingredion/${fileToken}.${fileExtention}`,
+      metadata: {
+        cacheControl: "max-age=31536000",
         metadata: {
-          cacheControl: "max-age=31536000",
-          metadata: {
-            firebaseStorageDownloadTokens: fileToken,
-          },
+          firebaseStorageDownloadTokens: fileToken,
         },
-      }
-    );
+      },
+    });
 
     return `https://firebasestorage.googleapis.com/v0/b/${
       fb_res[0]["metadata"]["bucket"]
@@ -237,6 +237,7 @@ export const getMedia = async (media_url: string, token: string) => {
       fb_res[0]["metadata"]["name"]
     )}?alt=media&token=${fileToken}`;
   } catch (error) {
+    console.log("error", error);
     throw error;
   }
 };

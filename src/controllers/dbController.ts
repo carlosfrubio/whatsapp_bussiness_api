@@ -66,6 +66,7 @@ class DbController {
     document: any,
     whatsapp: string
   ) {
+    console.log("INGRESO A INSERT")
     try {
       return await MessagesModel.create({
         chatroom_id,

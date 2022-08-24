@@ -101,6 +101,8 @@ class ClientMessageController {
                 const msg_type = data.messages[0].type;
                 const phoneData = await dbController_1.default.findPhoneData(phone_number_id);
                 let msg_body = "";
+                let msg_image = {};
+                let msg_document = {};
                 if (msg_type === WabaWebhook_1.TypeMessage.Text) {
                     msg_body = data.messages[0].text.body;
                 }
@@ -111,12 +113,15 @@ class ClientMessageController {
                     msg_body = data.messages[0].interactive.button_reply.id;
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Image) {
-                    msg_body = "PIC|" + data.messages[0].image.id;
+                    const downloadUrl = await this.getFileUrl(data.messages[0].image.id, phoneData.token);
+                    msg_image = { id: data.messages[0].image.id, downloadUrl };
+                    msg_body = `FILE|${downloadUrl}`;
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Document) {
-                    msg_body = "DOC|" + data.messages[0].document.id;
+                    const downloadUrl = await this.getFileUrl(data.messages[0].document.id, phoneData.token);
+                    msg_document = { id: data.messages[0].document.id, downloadUrl };
+                    msg_body = `FILE|${downloadUrl}`;
                 }
-                console.log(msg_body);
                 if (phoneData) {
                     const messageExists = await dbController_1.default.findMessage(msg_id);
                     if (messageExists) {
@@ -130,7 +135,7 @@ class ClientMessageController {
                     if (!chatroomData) {
                         chatroomData = await dbController_1.default.createChatroom(phoneData.id, from);
                     }
-                    await dbController_1.default.insertMessage(chatroomData.id, msg_id, msg_body, null, null, from);
+                    await dbController_1.default.insertMessage(chatroomData.id, msg_id, msg_body, msg_image, msg_document, from);
                     this.handleBotResponses({
                         phone_number_id,
                         result,
@@ -208,6 +213,17 @@ class ClientMessageController {
         }
         catch (error) {
             return error;
+        }
+    }
+    async getFileUrl(media_id, token) {
+        try {
+            const wabaUrl = await whatsAppApi_1.getMediaUrl(media_id, token);
+            const downLoadUrl = await whatsAppApi_1.getMedia(wabaUrl.url, token);
+            console.log("downLoadUrl", downLoadUrl);
+            return `${downLoadUrl}`;
+        }
+        catch (error) {
+            throw error;
         }
     }
     async timer() {

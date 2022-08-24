@@ -8,7 +8,7 @@ import {
   sendTemplateMessageToWhatsapp,
   sendInteractiveMessageToWhatsapp,
   getMediaUrl,
-  getMedia
+  getMedia,
 } from "./whatsAppApi";
 
 class ClientMessageController {
@@ -107,6 +107,7 @@ class ClientMessageController {
     }
   }
   public async manageWebHook(data: IWebhookMessage) {
+    //return true
     try {
       console.log("INCOMING_MESSAGE", JSON.stringify(data));
       if (
@@ -118,7 +119,9 @@ class ClientMessageController {
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
         const msg_type = data.messages[0].type;
         const phoneData = await DbController.findPhoneData(phone_number_id);
-        let msg_body = ""; // extract the message text from the webhook payload
+        let msg_body = "";
+        let msg_image = {};
+        let msg_document = {};
 
         if (msg_type === TypeMessage.Text) {
           msg_body = data.messages[0].text.body;
@@ -127,13 +130,24 @@ class ClientMessageController {
         } else if (msg_type === TypeMessage.Interactive) {
           msg_body = data.messages[0].interactive.button_reply.id;
         } else if (msg_type === TypeMessage.Image) {
-          msg_body = "PIC|" + data.messages[0].image.id
+          const downloadUrl = await this.getFileUrl(
+            data.messages[0].image.id,
+            phoneData.token
+          );
+          msg_image = { id: data.messages[0].image.id, downloadUrl };
+          msg_body = `FILE|${downloadUrl}`;
         } else if (msg_type === TypeMessage.Document) {
-          msg_body = "DOC|" + data.messages[0].document.id
+          const downloadUrl = await this.getFileUrl(
+            data.messages[0].document.id,
+            phoneData.token
+          );
+          msg_document = { id: data.messages[0].document.id, downloadUrl };
+          msg_body = `FILE|${downloadUrl}`;
         }
-        console.log(msg_body)
         if (phoneData) {
+          //console.log("phoneData", phoneData);
           const messageExists = await DbController.findMessage(msg_id);
+          //console.log("messageExists", messageExists);
           if (messageExists) {
             return;
           }
@@ -155,8 +169,8 @@ class ClientMessageController {
             chatroomData.id,
             msg_id,
             msg_body,
-            null,
-            null,
+            msg_image,
+            msg_document,
             from
           );
           this.handleBotResponses({
@@ -328,6 +342,17 @@ class ClientMessageController {
       return "Ok";
     } catch (error) {
       return error;
+    }
+  }
+
+  private async getFileUrl(media_id, token) {
+    try {
+      const wabaUrl = await getMediaUrl(media_id, token);
+      const downLoadUrl = await getMedia(wabaUrl.url, token);
+      console.log("downLoadUrl", downLoadUrl);
+      return `${downLoadUrl}`;
+    } catch (error) {
+      throw error;
     }
   }
 
