@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMedia = exports.getMediaUrl = exports.sendDocumentMessageToWhatsapp = exports.sendImageMessageToWhatsapp = exports.sendInteractiveMessageToWhatsapp = exports.sendTemplateMessageToWhatsapp = exports.sendTextMessageToWhatsapp = exports.uploadFileToWhatsapp = void 0;
+exports.getMedia = exports.getMediaUrl = exports.sendDocumentMessageToWhatsapp = exports.sendImageMessageToWhatsapp = exports.sendInteractiveMessageToWhatsapp = exports.sendMediaToWhatsappByUrl = exports.sendTemplateMessageToWhatsapp = exports.sendTextMessageToWhatsapp = exports.uploadFileToWhatsapp = void 0;
 const axios_1 = require("axios");
+const WabaWebhook_1 = require("../models/WabaWebhook");
 const firebase_1 = require("../services/firebase");
 const uuid = require("uuid-v4");
 const fs = require("fs");
@@ -74,6 +75,38 @@ const sendTemplateMessageToWhatsapp = async (phone_number_id, to, template, toke
     }
 };
 exports.sendTemplateMessageToWhatsapp = sendTemplateMessageToWhatsapp;
+const sendMediaToWhatsappByUrl = async (phone_number_id, to, type, token, link) => {
+    try {
+        const data = {
+            messaging_product: "whatsapp",
+            to: to,
+            type: type,
+        };
+        if (type === WabaWebhook_1.TypeMessage.Image) {
+            data.image = { link };
+        }
+        else if (type === WabaWebhook_1.TypeMessage.Document) {
+            data.document = { link };
+        }
+        else if (type === WabaWebhook_1.TypeMessage.Video) {
+            data.video = { link };
+        }
+        else if (type === WabaWebhook_1.TypeMessage.Audio) {
+            data.audio = { link };
+        }
+        const whatsAppResponse = await axios_1.default({
+            method: "POST",
+            url: URI + phone_number_id + "/messages?access_token=" + token,
+            data,
+            headers: { "Content-Type": "application/json" },
+        });
+        return whatsAppResponse.data;
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.sendMediaToWhatsappByUrl = sendMediaToWhatsappByUrl;
 const sendInteractiveMessageToWhatsapp = async (phone_number_id, to, token, header, body, footer, type, action) => {
     try {
         const data = {
@@ -89,7 +122,6 @@ const sendInteractiveMessageToWhatsapp = async (phone_number_id, to, token, head
                 action,
             },
         };
-        console.log(JSON.stringify(data));
         const whatsAppResponse = await axios_1.default({
             method: "POST",
             url: URI + phone_number_id + "/messages?access_token=" + token,

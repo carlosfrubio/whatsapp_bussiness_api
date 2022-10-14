@@ -3,6 +3,8 @@ import {
   ITextMessage,
   ITemplateMessage,
   IInteractiveMessage,
+  IMediaMessageUrl,
+  TypeMessage,
 } from "../models/WabaWebhook";
 import firebaseAdmin from "../services/firebase";
 
@@ -91,6 +93,40 @@ export const sendTemplateMessageToWhatsapp = async (
   }
 };
 
+export const sendMediaToWhatsappByUrl = async (
+  phone_number_id: string,
+  to: string,
+  type: TypeMessage,
+  token: string,
+  link: string
+) => {
+  try {
+    const data: IMediaMessageUrl = {
+      messaging_product: "whatsapp",
+      to: to,
+      type: type,
+    };
+    if (type === TypeMessage.Image) {
+      data.image = { link };
+    } else if (type === TypeMessage.Document) {
+      data.document = { link };
+    } else if (type === TypeMessage.Video) {
+      data.video = { link };
+    } else if (type === TypeMessage.Audio) {
+      data.audio = { link };
+    }
+    const whatsAppResponse = await Axios({
+      method: "POST", // Required, HTTP method, a string, e.g. POST, GET
+      url: URI + phone_number_id + "/messages?access_token=" + token,
+      data,
+      headers: { "Content-Type": "application/json" },
+    });
+    return whatsAppResponse.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const sendInteractiveMessageToWhatsapp = async (
   phone_number_id: string,
   to: string,
@@ -115,7 +151,7 @@ export const sendInteractiveMessageToWhatsapp = async (
         action,
       },
     };
-    console.log(JSON.stringify(data));
+    //console.log(JSON.stringify(data));
     const whatsAppResponse = await Axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
       url: URI + phone_number_id + "/messages?access_token=" + token,

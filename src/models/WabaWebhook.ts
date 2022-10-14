@@ -7,6 +7,7 @@ export enum TypeMessage {
   Location = "location",
   Interactive = "interactive",
   Button = "button",
+  Contacts = "contacts",
 }
 
 export enum StatusWhatsapp {
@@ -80,6 +81,70 @@ export interface ITextMessage {
   messaging_product: "whatsapp";
   to: string;
   text: { body: string };
+}
+
+export interface IMediaMessageUrl {
+  messaging_product: "whatsapp";
+  to: string;
+  type: TypeMessage;
+  image?: { link: string };
+  document?: { link: string };
+  video?: { link: string };
+  audio?: { link: string };
+}
+
+export interface IContactMessage {
+  messaging_product: "whatsapp";
+  to: string;
+  type: TypeMessage.Contacts;
+  contacts: [
+    {
+      addresses: [
+        {
+          street: string;
+          city: string;
+          state: string;
+          zip: string;
+          country: string;
+          country_code: string;
+          type: string;
+        }
+      ];
+      birthday: string;
+      emails: [
+        {
+          email: string;
+          type: string;
+        }
+      ];
+      name: {
+        formatted_name: string;
+        first_name: string;
+        last_name: string;
+        middle_name: string;
+        suffix: string;
+        prefix: string;
+      };
+      org: {
+        company: string;
+        department: string;
+        title: string;
+      };
+      phones: [
+        {
+          phone: string;
+          wa_id: string;
+          type: string;
+        }
+      ];
+      urls: [
+        {
+          url: string;
+          type: string;
+        }
+      ];
+    }
+  ];
 }
 
 export interface ITemplateMessage {

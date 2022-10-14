@@ -30,6 +30,7 @@ class WhatsappRouter {
         this.router.post("/webhook", this.hook);
         this.router.post("/create_waba_phone", this.createWabaPhone);
         this.router.put("/update_phone", this.updatePhoneData);
+        this.router.post("/send_template_message", this.sendTemplateMessage);
     }
     async hook(req, res) {
         if (req.body.object) {
@@ -133,6 +134,22 @@ class WhatsappRouter {
         }
         catch (error) {
             res.status(api_1.DataErrorCode.INVALID).json(error);
+        }
+    }
+    async sendTemplateMessage(req, res) {
+        const data = req.body;
+        const { phone_number_id, to, template, token, language, components } = data;
+        try {
+            const message = await whatsAppApi_1.sendTemplateMessageToWhatsapp(phone_number_id, to, template, token, language, components);
+            res.status(api_1.StandarCode.OK).json({
+                status: "success",
+                message,
+            });
+            console.log("Envio un OK");
+        }
+        catch (error) {
+            res.status(api_1.DataErrorCode.INVALID).json(error);
+            console.log("Envio un ERROR");
         }
     }
     async getWabaMediaUrl(req, res) {

@@ -275,7 +275,7 @@ class ClientMessageController {
         type,
         action
       );
-      console.log(waMessage);
+      // console.log(waMessage);
       await DbController.insertMessage(
         chatroom_id,
         waMessage.messages[0]["id"],

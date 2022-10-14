@@ -11,6 +11,7 @@ var TypeMessage;
     TypeMessage["Location"] = "location";
     TypeMessage["Interactive"] = "interactive";
     TypeMessage["Button"] = "button";
+    TypeMessage["Contacts"] = "contacts";
 })(TypeMessage = exports.TypeMessage || (exports.TypeMessage = {}));
 var StatusWhatsapp;
 (function (StatusWhatsapp) {

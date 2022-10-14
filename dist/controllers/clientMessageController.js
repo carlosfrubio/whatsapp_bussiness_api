@@ -185,7 +185,6 @@ class ClientMessageController {
         const { to, from, token, chatroom_id, phone_number_id, header, body, footer, type, action, } = data;
         try {
             const waMessage = await whatsAppApi_1.sendInteractiveMessageToWhatsapp(phone_number_id, to, token, header, body, footer, type, action);
-            console.log(waMessage);
             await dbController_1.default.insertMessage(chatroom_id, waMessage.messages[0]["id"], body, null, null, from);
             return "Ok";
         }

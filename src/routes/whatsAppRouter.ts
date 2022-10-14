@@ -5,6 +5,7 @@ import {
   getMediaUrl,
   uploadFileToWhatsapp,
   getMedia,
+  sendTemplateMessageToWhatsapp,
 } from "../controllers/whatsAppApi";
 import { Router, Request, Response } from "express";
 import { DataErrorCode, StandarCode } from "../models/api";
@@ -39,7 +40,7 @@ class WhatsappRouter {
     this.router.post("/webhook", this.hook);
     this.router.post("/create_waba_phone", this.createWabaPhone);
     this.router.put("/update_phone", this.updatePhoneData);
-    //this.router.post("/send_wa_message", this.sendWaMessage);
+    this.router.post("/send_template_message", this.sendTemplateMessage);
   }
 
   private async hook(req: Request, res: Response) {
@@ -162,11 +163,11 @@ class WhatsappRouter {
     }
   }
 
-  /* private async sendWaMessage(req: Request, res: Response) {
+  private async sendTemplateMessage(req: Request, res: Response) {
     const data = req.body;
+    const { phone_number_id, to, template, token, language, components } = data;
     try {
-      const message = await clientMessage.sendWaMessage(data);
-      console.log(StandarCode.OK);
+      const message = await sendTemplateMessageToWhatsapp(phone_number_id, to, template, token, language, components);
       res.status(StandarCode.OK).json({
         status: "success",
         message,
@@ -176,7 +177,7 @@ class WhatsappRouter {
       res.status(DataErrorCode.INVALID).json(error);
       console.log("Envio un ERROR");
     }
-  } */
+  }
 
   private async getWabaMediaUrl(req: Request, res: Response) {
     const { media_id, phone_number_id } = req.body;
@@ -229,7 +230,11 @@ class WhatsappRouter {
       if (!phoneData) {
         res.status(DataErrorCode.INVALID).json({ error: "Phone not found!" });
       } else {
-        const response = await getMedia(media_url, phoneData.token, phoneData.waba_id);
+        const response = await getMedia(
+          media_url,
+          phoneData.token,
+          phoneData.waba_id
+        );
         res.status(StandarCode.OK).json({
           status: "success",
           data: response,
