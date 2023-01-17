@@ -3,7 +3,8 @@ FROM node:12.18-slim
 ENV NODE_ENV=production
 
 WORKDIR /usr/src/app
-COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./serviceAccountKey.json", "./uploads", "./"]
+COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./serviceAccountKey.json", "./"]
+COPY ./uploads /uploads
 RUN npm install --production --silent
 
 WORKDIR /usr/src/app/dist
