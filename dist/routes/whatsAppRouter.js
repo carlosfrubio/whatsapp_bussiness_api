@@ -32,6 +32,7 @@ class WhatsappRouter {
         this.router.put("/update_phone", this.updatePhoneData);
         this.router.post("/send_message", this.sendMessage);
         this.router.post("/send_template_message", this.sendTemplateMessage);
+        this.router.post("/send_interactive_message", this.sendMessagInteractive);
     }
     async hook(req, res) {
         if (req.body.object) {
@@ -158,6 +159,22 @@ class WhatsappRouter {
         const { phone_number_id, to, body, token } = data;
         try {
             const message = await whatsAppApi_1.sendTextMessageToWhatsapp(phone_number_id, to, body, token);
+            res.status(api_1.StandarCode.OK).json({
+                status: "success",
+                message,
+            });
+            console.log("Envio un OK");
+        }
+        catch (error) {
+            res.status(api_1.DataErrorCode.INVALID).json(error);
+            console.log("Envio un ERROR");
+        }
+    }
+    async sendMessagInteractive(req, res) {
+        const data = req.body;
+        const { phone_number_id, to, token, header, body, footer, type, action } = data;
+        try {
+            const message = await whatsAppApi_1.sendInteractiveMessageToWhatsapp(phone_number_id, to, token, header, body, footer, type, action);
             res.status(api_1.StandarCode.OK).json({
                 status: "success",
                 message,

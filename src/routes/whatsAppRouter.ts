@@ -7,6 +7,7 @@ import {
   getMedia,
   sendTextMessageToWhatsapp,
   sendTemplateMessageToWhatsapp,
+  sendInteractiveMessageToWhatsapp,
 } from "../controllers/whatsAppApi";
 import { Router, Request, Response } from "express";
 import { DataErrorCode, StandarCode } from "../models/api";
@@ -43,6 +44,7 @@ class WhatsappRouter {
     this.router.put("/update_phone", this.updatePhoneData);
     this.router.post("/send_message", this.sendMessage);
     this.router.post("/send_template_message", this.sendTemplateMessage);
+    this.router.post("/send_interactive_message", this.sendMessagInteractive);
   }
 
   private async hook(req: Request, res: Response) {
@@ -169,7 +171,14 @@ class WhatsappRouter {
     const data = req.body;
     const { phone_number_id, to, template, token, language, components } = data;
     try {
-      const message = await sendTemplateMessageToWhatsapp(phone_number_id, to, template, token, language, components);
+      const message = await sendTemplateMessageToWhatsapp(
+        phone_number_id,
+        to,
+        template,
+        token,
+        language,
+        components
+      );
       res.status(StandarCode.OK).json({
         status: "success",
         message,
@@ -185,7 +194,38 @@ class WhatsappRouter {
     const data = req.body;
     const { phone_number_id, to, body, token } = data;
     try {
-      const message = await sendTextMessageToWhatsapp(phone_number_id, to, body, token);
+      const message = await sendTextMessageToWhatsapp(
+        phone_number_id,
+        to,
+        body,
+        token
+      );
+      res.status(StandarCode.OK).json({
+        status: "success",
+        message,
+      });
+      console.log("Envio un OK");
+    } catch (error) {
+      res.status(DataErrorCode.INVALID).json(error);
+      console.log("Envio un ERROR");
+    }
+  }
+
+  private async sendMessagInteractive(req: Request, res: Response) {
+    const data = req.body;
+    const { phone_number_id, to, token, header, body, footer, type, action } =
+      data;
+    try {
+      const message = await sendInteractiveMessageToWhatsapp(
+        phone_number_id,
+        to,
+        token,
+        header,
+        body,
+        footer,
+        type,
+        action
+      );
       res.status(StandarCode.OK).json({
         status: "success",
         message,
