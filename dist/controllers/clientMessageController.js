@@ -90,11 +90,9 @@ class ClientMessageController {
         }
     }
     async manageWebHook(data) {
-        var _a;
         try {
             console.log("INCOMING_MESSAGE", JSON.stringify(data));
-            if (data.hasOwnProperty("messages") &&
-                ((_a = data.messages[0].text) === null || _a === void 0 ? void 0 : _a.body) !== "") {
+            if (data.hasOwnProperty("messages")) {
                 const phone_number_id = data.metadata.phone_number_id;
                 const from = data.messages[0].from;
                 const msg_id = data.messages[0].id;
@@ -110,7 +108,12 @@ class ClientMessageController {
                     msg_body = data.messages[0].button.payload;
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Interactive) {
-                    msg_body = data.messages[0].interactive.button_reply.id;
+                    if (data.messages[0].interactive.type == "list_reply") {
+                        msg_body = data.messages[0].interactive.list_reply.id;
+                    }
+                    else {
+                        msg_body = data.messages[0].interactive.button_reply.id;
+                    }
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Image) {
                     const downloadUrl = await this.getFileUrl(data.messages[0].image.id, phoneData.token, phoneData.waba_id);

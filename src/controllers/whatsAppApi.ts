@@ -89,6 +89,7 @@ export const sendTemplateMessageToWhatsapp = async (
     });
     return whatsAppResponse.data;
   } catch (error) {
+    console.log(error)
     throw error;
   }
 };
@@ -160,6 +161,7 @@ export const sendInteractiveMessageToWhatsapp = async (
     });
     return whatsAppResponse.data;
   } catch (error) {
+    console.log(error)
     throw error;
   }
 };

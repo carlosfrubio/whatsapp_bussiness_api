@@ -172,6 +172,7 @@ class WhatsappRouter {
     }
     async sendMessagInteractive(req, res) {
         const data = req.body;
+        console.log(req.body);
         const { phone_number_id, to, token, header, body, footer, type, action } = data;
         try {
             const message = await whatsAppApi_1.sendInteractiveMessageToWhatsapp(phone_number_id, to, token, header, body, footer, type, action);

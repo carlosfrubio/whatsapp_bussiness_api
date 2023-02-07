@@ -110,10 +110,7 @@ class ClientMessageController {
     //return true
     try {
       console.log("INCOMING_MESSAGE", JSON.stringify(data));
-      if (
-        data.hasOwnProperty("messages") &&
-        data.messages[0].text?.body !== ""
-      ) {
+      if (data.hasOwnProperty("messages")) {
         const phone_number_id = data.metadata.phone_number_id;
         const from = data.messages[0].from; // extract the phone number from the webhook payload
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
@@ -128,7 +125,11 @@ class ClientMessageController {
         } else if (msg_type === TypeMessage.Button) {
           msg_body = data.messages[0].button.payload;
         } else if (msg_type === TypeMessage.Interactive) {
-          msg_body = data.messages[0].interactive.button_reply.id;
+          if (data.messages[0].interactive.type == "list_reply") {
+            msg_body = data.messages[0].interactive.list_reply.id;
+          } else {
+            msg_body = data.messages[0].interactive.button_reply.id;
+          }
         } else if (msg_type === TypeMessage.Image) {
           const downloadUrl = await this.getFileUrl(
             data.messages[0].image.id,

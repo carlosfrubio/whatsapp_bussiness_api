@@ -71,6 +71,7 @@ const sendTemplateMessageToWhatsapp = async (phone_number_id, to, template, toke
         return whatsAppResponse.data;
     }
     catch (error) {
+        console.log(error);
         throw error;
     }
 };
@@ -131,6 +132,7 @@ const sendInteractiveMessageToWhatsapp = async (phone_number_id, to, token, head
         return whatsAppResponse.data;
     }
     catch (error) {
+        console.log(error);
         throw error;
     }
 };
