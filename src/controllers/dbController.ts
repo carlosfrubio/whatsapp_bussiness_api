@@ -63,6 +63,7 @@ class DbController {
     message_id: string,
     text: string,
     image: any,
+    audio: any,
     document: any,
     whatsapp: string
   ) {
@@ -73,6 +74,7 @@ class DbController {
         message_id,
         text,
         image,
+        audio,
         document,
         whatsapp,
       });

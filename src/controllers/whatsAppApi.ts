@@ -256,6 +256,7 @@ export const getMedia = async (
     const fileToken = uuid();
     const fileExtention = response.headers["content-type"].split("/")[1];
     const fileLocation = `${path.dir}${fileToken}.${fileExtention}`;
+    //console.log("file_data", response.data)
     await response.data.pipe(fs.createWriteStream(fileLocation));
     await new Promise((resolve, reject) => {
       setTimeout(() => {
@@ -273,11 +274,11 @@ export const getMedia = async (
       },
     });
 
-    return `https://firebasestorage.googleapis.com/v0/b/${
+    return [`https://firebasestorage.googleapis.com/v0/b/${
       fb_res[0]["metadata"]["bucket"]
     }/o/${encodeURIComponent(
       fb_res[0]["metadata"]["name"]
-    )}?alt=media&token=${fileToken}`;
+    )}?alt=media&token=${fileToken}`, fileLocation];
   } catch (error) {
     console.log("error", error);
     throw error;

@@ -5,6 +5,11 @@ interface IPictureMessage extends Document {
   id: string;
 }
 
+interface IAudioMessage extends Document {
+  mime_type: string;
+  id: string;
+}
+
 interface IDocumentMessage extends Document {
   caption: string;
   filename: string;
@@ -19,6 +24,7 @@ export interface IMessageModel extends Document {
   text?: string;
   document?: IDocumentMessage;
   image?: IPictureMessage;
+  audio?: IAudioMessage;
 }
 
 const messageModel = new Schema(
@@ -49,6 +55,10 @@ const messageModel = new Schema(
       type: Object,
       required: false,
     },
+    audio: {
+      type: Object,
+      required: false,
+    }
   },
   { timestamps: true }
 );

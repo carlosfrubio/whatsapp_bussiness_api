@@ -29,6 +29,10 @@ const messageModel = new mongoose_1.Schema({
         type: Object,
         required: false,
     },
+    audio: {
+        type: Object,
+        required: false,
+    }
 }, { timestamps: true });
 exports.MessagesModel = mongoose_1.model("MessageModel ", messageModel, "messages");
 //# sourceMappingURL=messageModel.js.map

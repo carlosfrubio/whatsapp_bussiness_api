@@ -230,7 +230,7 @@ const getMedia = async (media_url, token, waba_id) => {
                 },
             },
         });
-        return `https://firebasestorage.googleapis.com/v0/b/${fb_res[0]["metadata"]["bucket"]}/o/${encodeURIComponent(fb_res[0]["metadata"]["name"])}?alt=media&token=${fileToken}`;
+        return [`https://firebasestorage.googleapis.com/v0/b/${fb_res[0]["metadata"]["bucket"]}/o/${encodeURIComponent(fb_res[0]["metadata"]["name"])}?alt=media&token=${fileToken}`, fileLocation];
     }
     catch (error) {
         console.log("error", error);

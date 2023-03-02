@@ -11,6 +11,9 @@ import {
   getMedia,
 } from "./whatsAppApi";
 
+const fs = require("fs");
+const FormData = require("form-data");
+
 class ClientMessageController {
   constructor() {}
 
@@ -119,6 +122,7 @@ class ClientMessageController {
         let msg_body = "";
         let msg_image = {};
         let msg_document = {};
+        let msg_audio = {};
 
         if (msg_type === TypeMessage.Text) {
           msg_body = data.messages[0].text.body;
@@ -131,7 +135,7 @@ class ClientMessageController {
             msg_body = data.messages[0].interactive.button_reply.id;
           }
         } else if (msg_type === TypeMessage.Image) {
-          const downloadUrl = await this.getFileUrl(
+          const [downloadUrl, fileLocation] = await this.getFileUrl(
             data.messages[0].image.id,
             phoneData.token,
             phoneData.waba_id
@@ -139,14 +143,24 @@ class ClientMessageController {
           msg_image = { id: data.messages[0].image.id, downloadUrl };
           msg_body = `FILE|${downloadUrl}`;
         } else if (msg_type === TypeMessage.Document) {
-          const downloadUrl = await this.getFileUrl(
+          const [downloadUrl, fileLocation] = await this.getFileUrl(
             data.messages[0].document.id,
             phoneData.token,
             phoneData.waba_id
           );
           msg_document = { id: data.messages[0].document.id, downloadUrl };
           msg_body = `FILE|${downloadUrl}`;
+        } else if (msg_type === TypeMessage.Audio) {
+          const [downloadUrl, fileLocation] = await this.getFileUrl(
+            data.messages[0].audio.id,
+            phoneData.token,
+            phoneData.waba_id
+          );
+          msg_audio = { id: data.messages[0].audio.id, downloadUrl };
+          const { data: { promt }} = await this.audioToText(fileLocation)
+          msg_body = promt
         }
+
         if (phoneData) {
           //console.log("phoneData", phoneData);
           const messageExists = await DbController.findMessage(msg_id);
@@ -173,6 +187,7 @@ class ClientMessageController {
             msg_id,
             msg_body,
             msg_image,
+            msg_audio,
             msg_document,
             from
           );
@@ -211,6 +226,7 @@ class ClientMessageController {
         body,
         null,
         null,
+        null,
         from
       );
       return "Ok";
@@ -242,6 +258,7 @@ class ClientMessageController {
         chatroom_id,
         waMessage.messages[0]["id"],
         template,
+        null,
         null,
         null,
         from
@@ -283,6 +300,7 @@ class ClientMessageController {
         body,
         null,
         null,
+        null,
         from
       );
       return "Ok";
@@ -316,6 +334,7 @@ class ClientMessageController {
         waMessage.messages[0]["id"],
         null,
         null,
+        null,
         { caption, filename, id: document_id },
         from
       );
@@ -340,6 +359,7 @@ class ClientMessageController {
         null,
         { id: image_id },
         null,
+        null,
         from
       );
       return "Ok";
@@ -351,9 +371,36 @@ class ClientMessageController {
   private async getFileUrl(media_id, token, waba_id) {
     try {
       const wabaUrl = await getMediaUrl(media_id, token);
-      const downLoadUrl = await getMedia(wabaUrl.url, token, waba_id);
-      console.log("downLoadUrl", downLoadUrl);
-      return `${downLoadUrl}`;
+      console.log("wabaUrl", wabaUrl)
+      const [downLoadUrl, fileLocation] = await getMedia(
+        wabaUrl.url,
+        token,
+        waba_id
+      );
+      return [downLoadUrl, fileLocation];
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async audioToText(file_path) {
+    try {
+      console.log("file_path", file_path)
+      const fileData = fs.createReadStream(file_path);
+      console.log("fileData", fileData)
+      const form = new FormData();
+      form.append("file", fileData);
+      const whisperApi = await Axios.post(
+        "http://172.174.228.254:5050/whispertest/573005437822",
+        form,
+        {
+          headers: {
+            ...form.getHeaders(),
+          },
+        }
+      );
+      console.log("whisperApi", whisperApi)
+      return whisperApi;
     } catch (error) {
       throw error;
     }
