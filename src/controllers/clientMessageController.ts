@@ -371,7 +371,7 @@ class ClientMessageController {
   private async getFileUrl(media_id, token, waba_id) {
     try {
       const wabaUrl = await getMediaUrl(media_id, token);
-      console.log("wabaUrl", wabaUrl)
+      //console.log("wabaUrl", wabaUrl)
       const [downLoadUrl, fileLocation] = await getMedia(
         wabaUrl.url,
         token,

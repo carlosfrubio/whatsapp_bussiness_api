@@ -229,7 +229,6 @@ class ClientMessageController {
     async getFileUrl(media_id, token, waba_id) {
         try {
             const wabaUrl = await whatsAppApi_1.getMediaUrl(media_id, token);
-            console.log("wabaUrl", wabaUrl);
             const [downLoadUrl, fileLocation] = await whatsAppApi_1.getMedia(wabaUrl.url, token, waba_id);
             return [downLoadUrl, fileLocation];
         }

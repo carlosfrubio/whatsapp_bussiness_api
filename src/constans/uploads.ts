@@ -1,4 +1,4 @@
-const uploads = "/uploads";
+const uploads = "./uploads";
 
 const uploadsDir = {
   dir: `${uploads}/`,
