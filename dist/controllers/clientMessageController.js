@@ -238,12 +238,10 @@ class ClientMessageController {
     }
     async audioToText(file_path) {
         try {
-            console.log("file_path", file_path);
             const fileData = fs.createReadStream(file_path);
-            console.log("fileData", fileData);
             const form = new FormData();
             form.append("file", fileData);
-            const whisperApi = await axios_1.default.post("http://172.174.228.254:5050/whispertest/573005437822", form, {
+            const whisperApi = await axios_1.default.post("http://54.196.11.84/whisper/whisper_api", form, {
                 headers: {
                     ...form.getHeaders(),
                 },
