@@ -172,6 +172,8 @@ class ClientMessageController {
             message: msg_body,
             sender: from,
           });
+          console.log("MENSAJE QUE ENVIA", msg_body)
+          console.log("RESPUESTA BOT", result)
           let chatroomData = await DbController.findChatroom(
             phoneData.id,
             from
@@ -399,7 +401,7 @@ class ClientMessageController {
           },
         }
       );
-      console.log("whisperApi", whisperApi)
+      //console.log("whisperApi", whisperApi)
       return whisperApi;
     } catch (error) {
       throw error;

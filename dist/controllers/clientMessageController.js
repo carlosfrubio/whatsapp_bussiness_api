@@ -143,6 +143,8 @@ class ClientMessageController {
                         message: msg_body,
                         sender: from,
                     });
+                    console.log("MENSAJE QUE ENVIA", msg_body);
+                    console.log("RESPUESTA BOT", result);
                     let chatroomData = await dbController_1.default.findChatroom(phoneData.id, from);
                     if (!chatroomData) {
                         chatroomData = await dbController_1.default.createChatroom(phoneData.id, from);
@@ -246,7 +248,6 @@ class ClientMessageController {
                     ...form.getHeaders(),
                 },
             });
-            console.log("whisperApi", whisperApi);
             return whisperApi;
         }
         catch (error) {
