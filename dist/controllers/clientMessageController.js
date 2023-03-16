@@ -84,6 +84,17 @@ class ClientMessageController {
                         action: (_f = response.custom.interactive) === null || _f === void 0 ? void 0 : _f.action,
                     });
                 }
+                else if (response.hasOwnProperty("response")) {
+                    await this.sendTextMessage({
+                        phone_number_id,
+                        chatroom_id,
+                        token,
+                        to,
+                        from,
+                        body: response.response,
+                    });
+                    await this.timer();
+                }
             }
             return true;
         }
@@ -130,19 +141,23 @@ class ClientMessageController {
                 }
                 else if (msg_type === WabaWebhook_1.TypeMessage.Audio) {
                     const [downloadUrl, fileLocation] = await this.getFileUrl(data.messages[0].audio.id, phoneData.token, phoneData.waba_id);
-                    msg_audio = { id: data.messages[0].audio.id, downloadUrl };
-                    const { data: { promt } } = await this.audioToText(fileLocation);
-                    msg_body = promt;
+                    const { data: { response }, } = await this.audioToText(fileLocation);
+                    msg_body = response;
+                    msg_audio = { response };
                 }
                 if (phoneData) {
                     const messageExists = await dbController_1.default.findMessage(msg_id);
                     if (messageExists) {
                         return;
                     }
-                    const { data: result } = await axios_1.default.post(phoneData.bot_url, {
-                        message: msg_body,
-                        sender: from,
-                    });
+                    const result = [];
+                    if (Object.keys(msg_audio).length !== 0) {
+                        result.push(msg_audio);
+                    }
+                    else {
+                        const { data: response } = await this.gpt3(msg_body, from);
+                        result.push(response);
+                    }
                     let chatroomData = await dbController_1.default.findChatroom(phoneData.id, from);
                     if (!chatroomData) {
                         chatroomData = await dbController_1.default.createChatroom(phoneData.id, from);
@@ -238,17 +253,31 @@ class ClientMessageController {
     }
     async audioToText(file_path) {
         try {
-            console.log("file_path", file_path);
             const fileData = fs.createReadStream(file_path);
-            console.log("fileData", fileData);
             const form = new FormData();
             form.append("file", fileData);
-            const whisperApi = await axios_1.default.post("http://172.174.228.254:5050/whispertest/573005437822", form, {
+            const whisperApi = await axios_1.default.post("http://54.196.11.84/whisper/whisper_api", form, {
                 headers: {
                     ...form.getHeaders(),
                 },
             });
-            console.log("whisperApi", whisperApi);
+            return whisperApi;
+        }
+        catch (error) {
+            throw error;
+        }
+    }
+    async gpt3(msg, phone) {
+        try {
+            console.log("SI ENTRA AL METODO");
+            const form = new FormData();
+            form.append("type", "text");
+            form.append("text", msg);
+            const whisperApi = await axios_1.default.post("http://172.174.228.254:5050/doitcare_asr/" + phone, form, {
+                headers: {
+                    ...form.getHeaders(),
+                },
+            });
             return whisperApi;
         }
         catch (error) {

@@ -102,6 +102,16 @@ class ClientMessageController {
             type: response.custom.interactive?.type,
             action: response.custom.interactive?.action,
           });
+        } else if (response.hasOwnProperty("response")) {
+          await this.sendTextMessage({
+            phone_number_id,
+            chatroom_id,
+            token,
+            to,
+            from,
+            body: response.response,
+          });
+          await this.timer();
         }
       }
       return true;
@@ -119,6 +129,7 @@ class ClientMessageController {
         const msg_id = data.messages[0].id; // extract the Id text from the webhook payload
         const msg_type = data.messages[0].type;
         const phoneData = await DbController.findPhoneData(phone_number_id);
+        //console.log("phoneData", phoneData)
         let msg_body = "";
         let msg_image = {};
         let msg_document = {};
@@ -156,9 +167,11 @@ class ClientMessageController {
             phoneData.token,
             phoneData.waba_id
           );
-          msg_audio = { id: data.messages[0].audio.id, downloadUrl };
-          const { data: { promt }} = await this.audioToText(fileLocation)
-          msg_body = promt
+          const {
+            data: { response },
+          } = await this.audioToText(fileLocation);
+          msg_body = response;
+          msg_audio = { response };
         }
 
         if (phoneData) {
@@ -168,10 +181,21 @@ class ClientMessageController {
           if (messageExists) {
             return;
           }
-          const { data: result } = await Axios.post(phoneData.bot_url, {
+          /* const { data: result } = await Axios.post(phoneData.bot_url, {
             message: msg_body,
             sender: from,
-          });
+          }); */
+          const result = [];
+          if (Object.keys(msg_audio).length !== 0) {
+            //console.log("resultado del audio");
+            //console.log(msg_audio);
+            result.push(msg_audio);
+          } else {
+            const { data: response } = await this.gpt3(msg_body, from);
+            result.push(response);
+            //console.log("result", response);
+          }
+
           let chatroomData = await DbController.findChatroom(
             phoneData.id,
             from
@@ -385,13 +409,13 @@ class ClientMessageController {
 
   private async audioToText(file_path) {
     try {
-      console.log("file_path", file_path)
+      //console.log("file_path", file_path);
       const fileData = fs.createReadStream(file_path);
-      console.log("fileData", fileData)
+      //console.log("fileData", fileData);
       const form = new FormData();
       form.append("file", fileData);
       const whisperApi = await Axios.post(
-        "http://172.174.228.254:5050/whispertest/573005437822",
+        "http://54.196.11.84/whisper/whisper_api",
         form,
         {
           headers: {
@@ -399,7 +423,28 @@ class ClientMessageController {
           },
         }
       );
-      console.log("whisperApi", whisperApi)
+      //console.log("whisperApi", whisperApi);
+      return whisperApi;
+    } catch (error) {
+      throw error;
+    }
+  }
+  private async gpt3(msg, phone) {
+    try {
+      console.log("SI ENTRA AL METODO");
+      const form = new FormData();
+      form.append("type", "text");
+      form.append("text", msg);
+      const whisperApi = await Axios.post(
+        "http://172.174.228.254:5050/doitcare_asr/" + phone,
+        form,
+        {
+          headers: {
+            ...form.getHeaders(),
+          },
+        }
+      );
+      //console.log("whisperApi", whisperApi)
       return whisperApi;
     } catch (error) {
       throw error;
