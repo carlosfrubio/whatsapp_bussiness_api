@@ -436,7 +436,7 @@ class ClientMessageController {
       form.append("type", "text");
       form.append("text", msg);
       const whisperApi = await Axios.post(
-        "http://172.174.228.254:5050/doitcare_asr/" + phone,
+        "http://54.196.11.84/whisper/gpt3/" + phone,
         form,
         {
           headers: {
