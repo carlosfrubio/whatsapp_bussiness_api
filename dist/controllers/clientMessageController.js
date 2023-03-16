@@ -131,8 +131,8 @@ class ClientMessageController {
                 else if (msg_type === WabaWebhook_1.TypeMessage.Audio) {
                     const [downloadUrl, fileLocation] = await this.getFileUrl(data.messages[0].audio.id, phoneData.token, phoneData.waba_id);
                     msg_audio = { id: data.messages[0].audio.id, downloadUrl };
-                    const { data: { promt } } = await this.audioToText(fileLocation);
-                    msg_body = promt;
+                    const { data: { prompt } } = await this.audioToText(fileLocation);
+                    msg_body = prompt;
                 }
                 if (phoneData) {
                     const messageExists = await dbController_1.default.findMessage(msg_id);

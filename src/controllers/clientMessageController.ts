@@ -157,8 +157,8 @@ class ClientMessageController {
             phoneData.waba_id
           );
           msg_audio = { id: data.messages[0].audio.id, downloadUrl };
-          const { data: { promt }} = await this.audioToText(fileLocation)
-          msg_body = promt
+          const { data: { prompt }} = await this.audioToText(fileLocation)
+          msg_body = prompt
         }
 
         if (phoneData) {
